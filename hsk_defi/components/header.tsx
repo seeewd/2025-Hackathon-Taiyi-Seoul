@@ -15,7 +15,7 @@ export default function Header() {
     const routes = [
         { href: "/", label: "Home", active: pathname === "/" },
         { href: "/lend", label: "Lender", active: pathname === "/lend" },
-        { href: "/borrow", label: "Borrower", active: pathname === "/borrow" },
+        { href: "/verify-borrow", label: "Borrower", active: pathname === "/verify-borrow" },
     ]
 
     return (
