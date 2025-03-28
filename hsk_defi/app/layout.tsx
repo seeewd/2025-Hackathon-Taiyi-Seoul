@@ -5,6 +5,7 @@ import { Providers } from "./providers"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { Toaster } from "sonner"
+import { SquareDivideIcon } from "lucide-react"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,3 +47,4 @@ export default function RootLayout({
     </html>
   )
 }
+
