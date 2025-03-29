@@ -131,3 +131,32 @@ export async function mintInvoice(
   })
 }
 
+export async function getAllInvoices(): Promise<(Invoice & { invoiceId: bigint })[]> {
+  try {
+    const account = getAccount(config)
+    const address = account?.address
+
+    if (!address) {
+      throw new Error("Wallet not connected")
+    }
+
+    // admin이 아닐 경우 차단 (보안 강화 목적)
+    if (address.toLowerCase() !== ADMIN_ADDRESS.toLowerCase()) {
+      throw new Error("Not authorized: Only admin can access all invoices")
+    }
+
+    const rawData = await publicClient.readContract({
+      ...invoicePlatformContract,
+      functionName: "getAllInvoices",
+    }) as Invoice[]
+
+    return rawData.map((inv, index) => ({
+      ...inv,
+      invoiceId: BigInt(index), // 필요시 실제 invoiceId 포함하도록 스마트컨트랙트 수정 가능
+    }))
+  } catch (error) {
+    console.error("Error fetching all invoices (admin only):", error)
+    throw error
+  }
+}
+
