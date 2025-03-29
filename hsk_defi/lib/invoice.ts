@@ -1,9 +1,10 @@
 import { Abi, createPublicClient, http, createWalletClient, custom } from "viem"
 import { hashkeyChainTestnet } from "./chains"
 import invoicePlatformJsonAbi from "./abi/invoiceabi.json" assert { type: "json" }
-import { getAccount } from "@wagmi/core"
+import { getAccount} from "@wagmi/core"
 
 const INVOICE_PLATFORM_ADDRESS: `0x${string}` = "0xAACa5c47fc3F6ca0E5eD54630729e6690c437795"
+const ADMIN_ADDRESS: `0x${string}` = "0x0c5fde19219d81a826C9E01bE4f0C00fe333cC8e"
 
 export const publicClient = createPublicClient({
   chain: hashkeyChainTestnet,
@@ -58,12 +59,8 @@ export async function getNextInvoiceId() {
 }
 
 // === WRITE FUNCTIONS ===
-export async function mintInvoice(
-  amount: bigint,
-  dueDate: bigint,
-  uri: string
-) {
-  const account = getAccount( window.ethereum )
+export async function mintInvoice(amount: bigint, dueDate: bigint, uri: string) {
+  const account = getAccount(window.ethereum)
   const address = account?.address
 
   if (!address) {
@@ -71,11 +68,12 @@ export async function mintInvoice(
   }
 
   return walletClient.writeContract({
-    account: address,
+    account: address as `0x${string}`,
     address: INVOICE_PLATFORM_ADDRESS,
     abi: invoicePlatformJsonAbi as Abi,
     functionName: "mintInvoice",
-    args: [address, amount, dueDate, uri],
+    args: [ADMIN_ADDRESS, amount, dueDate, uri],
   })
+  
 }
 
