@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useAccount } from "wagmi"
 import { useRouter } from "next/navigation"
-import { getInvoiceDetails, setInvoiceStatus } from "@/lib/invoice"
+import { getAllInvoices, getInvoiceDetails, setInvoiceStatus } from "@/lib/invoice"
 import {
   Select,
   SelectTrigger,
@@ -12,7 +12,7 @@ import {
   SelectItem,
 } from "@/components/ui/select"
 
-const ADMIN_ADDRESS = "0x0c5fde19219d81a826C9E01bE4f0C00fe333cC8e".toLowerCase()
+const ADMIN_ADDRESS = "0xD06F669B991742808e81db1c5241080EFeA6f095".toLowerCase()
 
 const STATUS_OPTIONS = [
   { label: "초안", value: 0 },
@@ -46,7 +46,7 @@ export default function AdminPage() {
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const result = await getInvoiceDetails()
+        const result = await getAllInvoices()
         setInvoices(result)
       } catch (err) {
         console.error("인보이스 로딩 실패:", err)

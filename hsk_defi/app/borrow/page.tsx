@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { getInvoiceDetails, mintInvoice } from "@/lib/invoice"
 
+
 function convertStatus(status: number): string {
   switch (status) {
     case 0: return "초안"

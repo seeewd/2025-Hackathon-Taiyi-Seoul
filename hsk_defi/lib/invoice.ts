@@ -5,8 +5,8 @@ import { getAccount, writeContract } from "@wagmi/core"
 import { getWalletClient } from "./walletClient"
 import { config } from "@/wagmi-config"
 
-const INVOICE_PLATFORM_ADDRESS: `0x${string}` = "0xAACa5c47fc3F6ca0E5eD54630729e6690c437795"
-const ADMIN_ADDRESS: `0x${string}` = "0x0c5fde19219d81a826C9E01bE4f0C00fe333cC8e"
+const INVOICE_PLATFORM_ADDRESS: `0x${string}` = "0x447Ee9a8f622672BF988dc6324451692361C7667"
+const ADMIN_ADDRESS: `0x${string}` = "0xD06F669B991742808e81db1c5241080EFeA6f095"
 
 export type Invoice = {
   clientName: string
@@ -138,11 +138,6 @@ export async function getAllInvoices(): Promise<(Invoice & { invoiceId: bigint }
 
     if (!address) {
       throw new Error("Wallet not connected")
-    }
-
-    // admin이 아닐 경우 차단 (보안 강화 목적)
-    if (address.toLowerCase() !== ADMIN_ADDRESS.toLowerCase()) {
-      throw new Error("Not authorized: Only admin can access all invoices")
     }
 
     const rawData = await publicClient.readContract({
