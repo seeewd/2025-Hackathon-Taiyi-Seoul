@@ -21,7 +21,7 @@ export async function getCluster() {
         });
         console.log("Connected to Couchbase cluster");
 
-        bucket = cluster.bucket("borrow"); // `user` 버킷 사용
+        bucket = cluster.bucket("borrow"); 
         usersCollection = bucket.defaultCollection();
     }
 
