@@ -1,7 +1,7 @@
 import { Abi, createPublicClient, http } from "viem"
 import { hashkeyChainTestnet } from "./chains"
 import invoicePlatformJsonAbi from "./abi/invoiceabi.json" assert { type: "json" }
-import { getAccount } from "@wagmi/core"
+import { getAccount, writeContract } from "@wagmi/core"
 import { getWalletClient } from "./walletClient"
 import { config } from "@/wagmi-config"
 
@@ -23,7 +23,16 @@ export type Invoice = {
   contractAddress?: string
   mintedDate?: bigint
 }
-
+export enum InvoiceStatus {
+  Draft= 0,
+  Pending=1,
+  Approved=2,
+  LoanBefore=3,
+  LoanStarted=4,
+  LoanDone=5,
+  Paid=6,
+  Rejected=7,
+}
 
 export const publicClient = createPublicClient({
   chain: hashkeyChainTestnet,
@@ -33,6 +42,23 @@ export const publicClient = createPublicClient({
 export const invoicePlatformContract = {
   address: INVOICE_PLATFORM_ADDRESS,
   abi: invoicePlatformJsonAbi as Abi,
+}
+
+export async function setInvoiceStatus(
+  invoiceId: bigint,
+  newStatus: InvoiceStatus
+) {
+  try {
+    return await writeContract(config, {
+      address: INVOICE_PLATFORM_ADDRESS,
+      abi: invoicePlatformJsonAbi as Abi,
+      functionName: "setInvoiceStatus",
+      args: [invoiceId, newStatus],
+    })
+  } catch (error) {
+    console.error("Error setting invoice status:", error)
+    throw error
+  }
 }
 
 // === VIEW FUNCTIONS ===
