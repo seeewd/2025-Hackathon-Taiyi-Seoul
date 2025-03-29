@@ -1,12 +1,13 @@
-import { Abi, createPublicClient, http, createWalletClient, custom } from "viem"
+import { Abi, createPublicClient, http } from "viem"
 import { hashkeyChainTestnet } from "./chains"
 import invoicePlatformJsonAbi from "./abi/invoiceabi.json" assert { type: "json" }
-import { getAccount} from "@wagmi/core"
+import { getAccount } from "@wagmi/core"
+import { getWalletClient } from "./walletClient"
 
 const INVOICE_PLATFORM_ADDRESS: `0x${string}` = "0xAACa5c47fc3F6ca0E5eD54630729e6690c437795"
 const ADMIN_ADDRESS: `0x${string}` = "0x0c5fde19219d81a826C9E01bE4f0C00fe333cC8e"
 
-type RawInvoice = {
+export type RawInvoice = {
   clientName: string
   amount: bigint
   issueDate: bigint
@@ -22,15 +23,9 @@ type RawInvoice = {
   mintedDate?: bigint
 }
 
-
 export const publicClient = createPublicClient({
   chain: hashkeyChainTestnet,
   transport: http(),
-})
-
-export const walletClient = createWalletClient({
-  chain: hashkeyChainTestnet,
-  transport: custom(window.ethereum),
 })
 
 export const invoicePlatformContract = {
@@ -39,6 +34,7 @@ export const invoicePlatformContract = {
 }
 
 // === VIEW FUNCTIONS ===
+
 export async function getInvoiceDetails(): Promise<RawInvoice[]> {
   try {
     const data = await publicClient.readContract({
@@ -52,7 +48,6 @@ export async function getInvoiceDetails(): Promise<RawInvoice[]> {
     throw error
   }
 }
-
 
 export async function getInvoiceById(invoiceId: bigint) {
   try {
@@ -77,6 +72,7 @@ export async function getNextInvoiceId() {
 }
 
 // === WRITE FUNCTIONS ===
+
 export async function mintInvoice(amount: bigint, dueDate: bigint, uri: string) {
   const account = getAccount(window.ethereum)
   const address = account?.address
@@ -85,6 +81,8 @@ export async function mintInvoice(amount: bigint, dueDate: bigint, uri: string) 
     throw new Error("Wallet not connected")
   }
 
+  const walletClient = getWalletClient()
+
   return walletClient.writeContract({
     account: address as `0x${string}`,
     address: INVOICE_PLATFORM_ADDRESS,
@@ -92,6 +90,4 @@ export async function mintInvoice(amount: bigint, dueDate: bigint, uri: string) 
     functionName: "mintInvoice",
     args: [ADMIN_ADDRESS, amount, dueDate, uri],
   })
-  
 }
-
