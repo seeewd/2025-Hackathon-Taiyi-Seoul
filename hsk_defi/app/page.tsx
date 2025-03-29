@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Wallet, FileText, Shield, Coins} from "lucide-react";
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { ArrowRight, Wallet, FileText, Shield, Coins } from "lucide-react"
 
 export default function Home() {
   return (
@@ -110,16 +110,18 @@ export default function Home() {
               <div className="rounded-full bg-primary/10 p-3">
                 <Shield className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-bold">KYC 인증</h3>
-              <p className="text-center text-muted-foreground">Fractal ID를 통한 신원 인증으로 안전한 거래 환경 구축</p>
+              <h3 className="text-xl font-bold">ERC4626 KYC 인증</h3>
+              <p className="text-center text-muted-foreground">
+                ERC4626 표준을 활용한 안전하고 효율적인 KYC 인증 시스템 구축
+              </p>
             </div>
             <div className="flex flex-col items-center space-y-4 rounded-lg border p-6">
               <div className="rounded-full bg-primary/10 p-3">
                 <Coins className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-bold">결제 및 정산</h3>
+              <h3 className="text-xl font-bold">HSK 결제 및 정산</h3>
               <p className="text-center text-muted-foreground">
-                USDC 또는 HSK로 정산되며, 모든 결제와 대출은 HashKey Chain 상에서 처리
+                HashKey Chain의 네이티브 토큰 HSK를 통한 빠르고 효율적인 결제 및 정산 처리
               </p>
             </div>
             <div className="flex flex-col items-center space-y-4 rounded-lg border p-6">
@@ -136,14 +138,14 @@ export default function Home() {
                   strokeLinejoin="round"
                   className="h-6 w-6 text-primary"
                 >
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                  <path d="M2 17l10 5 10-5" />
-                  <path d="M2 12l10 5 10-5" />
+                  <path d="M3 3v18h18" />
+                  <path d="M18 9l-6-6-6 6" />
+                  <path d="M6 9h12" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold">멀티체인 연동</h3>
+              <h3 className="text-xl font-bold">분석 대시보드</h3>
               <p className="text-center text-muted-foreground">
-                Circle CCTP와 LayerZero 등의 메시징 프로토콜을 통해 다른 체인과 유연한 연동
+                인보이스 및 대출 현황을 실시간으로 모니터링하고 분석할 수 있는 종합 대시보드
               </p>
             </div>
             <div className="flex flex-col items-center space-y-4 rounded-lg border p-6">
@@ -161,11 +163,12 @@ export default function Home() {
                   className="h-6 w-6 text-primary"
                 >
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="m9 12 2 2 4-4" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold">결제 책임자 서명</h3>
+              <h3 className="text-xl font-bold">스마트 컨트랙트 감사</h3>
               <p className="text-center text-muted-foreground">
-                DocuSign을 통한 전자 서명으로 결제 의무를 확정하고 법적 책임 확보
+                제3자 감사를 통한 스마트 컨트랙트 보안 검증으로 사용자 자산 보호
               </p>
             </div>
           </div>
@@ -177,9 +180,7 @@ export default function Home() {
         <div className="w-full max-w-screen-xl px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-24 mx-auto">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                지금 바로 시작하세요
-              </h2>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">지금 바로 시작하세요</h2>
               <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto">
                 인보이스를 NFT로 변환하고 즉시 유동성을 확보하세요
               </p>
@@ -196,5 +197,6 @@ export default function Home() {
         </div>
       </section>
     </main>
-  );
+  )
 }
+
