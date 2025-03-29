@@ -62,7 +62,7 @@ export async function setInvoiceStatus(
 }
 
 // === VIEW FUNCTIONS ===
-export async function getInvoiceDetails(): Promise<Invoice[]> {
+export async function getInvoiceDetails(): Promise<(Invoice & { invoiceId: bigint })[]> {
   try {
     const account = getAccount(config)
     const address = account?.address
@@ -70,17 +70,20 @@ export async function getInvoiceDetails(): Promise<Invoice[]> {
     if (!address) {
       throw new Error("Wallet not connected")
     }
-    return await publicClient.readContract({
+
+    const rawData = await publicClient.readContract({
       ...invoicePlatformContract,
       functionName: "getMyInvoices",
       account: address,
-    }) as Invoice[]
-    
+    }) as (Invoice & { invoiceId: bigint })[]
+
+    return rawData
   } catch (error) {
     console.error("Error fetching invoice details:", error)
     throw error
   }
 }
+
 
 
 export async function getInvoiceById(invoiceId: bigint) {
