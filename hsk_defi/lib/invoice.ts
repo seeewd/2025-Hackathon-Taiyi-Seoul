@@ -75,14 +75,18 @@ export async function getInvoiceDetails(): Promise<(Invoice & { invoiceId: bigin
       ...invoicePlatformContract,
       functionName: "getMyInvoices",
       account: address,
-    }) as (Invoice & { invoiceId: bigint })[]
+    }) as Invoice[]
 
-    return rawData
+    return rawData.map((inv, index) => ({
+      ...inv,
+      invoiceId: BigInt(index), // 또는 컨트랙트에서 실제 invoiceId 반환 시 inv.invoiceId
+    }))
   } catch (error) {
     console.error("Error fetching invoice details:", error)
     throw error
   }
 }
+
 
 
 
