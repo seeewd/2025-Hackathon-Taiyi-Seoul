@@ -1,10 +1,10 @@
 "use client"
 
 import { useAccount } from "wagmi"
-import { mintInvoice } from "@/lib/invoice"
+import { mintInvoice, getInvoiceDetails } from "@/lib/invoice"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { ConnectWallet } from "@/components/wallet" // 지갑 연결 컴포넌트
+import { ConnectWallet } from "@/components/wallet"
 
 export default function TestPage() {
   const { address, isConnected } = useAccount()
@@ -28,11 +28,25 @@ export default function TestPage() {
     }
   }
 
+  const handleGetInvoices = async () => {
+    try {
+      const invoices = await getInvoiceDetails()
+      console.log("📄 Invoices:", invoices)
+      toast.success("Invoices fetched! Check console.")
+    } catch (err) {
+      toast.error("Failed to fetch invoices")
+      console.error("Error fetching invoices:", err)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6 items-start p-6">
       <h1 className="text-2xl font-semibold">Test Invoice Minting</h1>
       <ConnectWallet />
       <Button onClick={handleMint}>Mint Invoice</Button>
+      <Button onClick={handleGetInvoices} variant="outline">
+        Get My Invoices
+      </Button>
     </div>
   )
 }

@@ -20,9 +20,17 @@ export const invoicePlatformContract = {
 // === VIEW FUNCTIONS ===
 export async function getInvoiceDetails() {
   try {
+    const account = getAccount(config)
+    const address = account?.address
+
+    if (!address) {
+      throw new Error("Wallet not connected")
+    }
     return await publicClient.readContract({
       ...invoicePlatformContract,
       functionName: "getMyInvoices",
+      account: address, // ✅ 여기가 핵심
+
     })
   } catch (error) {
     console.error("Error fetching invoice details:", error)
