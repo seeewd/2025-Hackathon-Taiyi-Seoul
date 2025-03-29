@@ -6,6 +6,23 @@ import { getAccount} from "@wagmi/core"
 const INVOICE_PLATFORM_ADDRESS: `0x${string}` = "0xAACa5c47fc3F6ca0E5eD54630729e6690c437795"
 const ADMIN_ADDRESS: `0x${string}` = "0x0c5fde19219d81a826C9E01bE4f0C00fe333cC8e"
 
+type RawInvoice = {
+  clientName: string
+  amount: bigint
+  issueDate: bigint
+  dueDate: bigint
+  fileName: string
+  status: number
+  tokenId?: bigint
+  contractAddress?: string
+  nftMinted?: boolean
+  loanAmount?: bigint
+  interestRate?: number
+  loanDate?: bigint
+  mintedDate?: bigint
+}
+
+
 export const publicClient = createPublicClient({
   chain: hashkeyChainTestnet,
   transport: http(),
@@ -22,19 +39,20 @@ export const invoicePlatformContract = {
 }
 
 // === VIEW FUNCTIONS ===
-export async function getInvoiceDetails() {
+export async function getInvoiceDetails(): Promise<RawInvoice[]> {
   try {
     const data = await publicClient.readContract({
       address: INVOICE_PLATFORM_ADDRESS,
       abi: invoicePlatformJsonAbi as Abi,
       functionName: "getMyInvoices",
     })
-    return data
+    return data as RawInvoice[]
   } catch (error) {
     console.error("Error fetching invoice details:", error)
     throw error
   }
 }
+
 
 export async function getInvoiceById(invoiceId: bigint) {
   try {

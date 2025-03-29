@@ -14,55 +14,21 @@ import { FileText, BarChart3, Upload, Clock, CheckCircle, AlertCircle, ExternalL
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { getInvoiceDetails } from "@/lib/invoice"
 
-// Mock data for invoices - replace with actual API calls
-const mockInvoices = [
-  {
-    id: "INV-2023-001",
-    clientName: "ABC 주식회사",
-    amount: "10,000,000 KRW",
-    issueDate: "2023-10-15",
-    dueDate: "2023-11-15",
-    status: "대출 중",
-    loanAmount: "8,000 USDC",
-    interestRate: "5%",
-    loanDate: "2023-10-16",
-    fileName: "invoice-abc-2023.pdf",
-    nft: {
-      tokenId: "1234",
-      contractAddress: "0x1234...5678",
-      blockchain: "HashKey Chain",
-      imageUrl: "/placeholder.svg?height=300&width=300",
-      mintedDate: "2023-10-16",
-    },
-  },
-  {
-    id: "INV-2023-002",
-    clientName: "XYZ 기업",
-    amount: "5,000,000 KRW",
-    issueDate: "2023-10-20",
-    dueDate: "2023-12-20",
-    status: "승인 완료",
-    fileName: "invoice-xyz-2023.pdf",
-    nft: {
-      tokenId: "1235",
-      contractAddress: "0x1234...5678",
-      blockchain: "HashKey Chain",
-      imageUrl: "/placeholder.svg?height=300&width=300",
-      mintedDate: "2023-10-22",
-    },
-  },
-  {
-    id: "INV-2023-003",
-    clientName: "글로벌 테크",
-    amount: "7,500,000 KRW",
-    issueDate: "2023-10-25",
-    dueDate: "2023-12-25",
-    status: "심사 중",
-    fileName: "invoice-global-2023.pdf",
-    nft: null,
-  },
-]
+function convertStatus(status: number): string {
+  switch (status) {
+    case 0: return "초안"
+    case 1: return "심사 중"
+    case 2: return "승인 완료"
+    case 3: return "대출 전"
+    case 4: return "대출 중"
+    case 5: return "대출 완료"
+    case 6: return "상환 완료"
+    case 7: return "거절됨"
+    default: return "알 수 없음"
+  }
+}
 
 export default function BorrowPage() {
   const { address, isConnected } = useAccount()
@@ -77,7 +43,7 @@ export default function BorrowPage() {
   useEffect(() => {
     const checkStatus = async () => {
       if (!isConnected || !address) return
-
+  
       try {
         const res = await fetch("/api/wallet-status", {
           method: "POST",
@@ -87,18 +53,41 @@ export default function BorrowPage() {
         })
         const data = await res.json()
         setStatus(data.status || "error")
-
-        // In a real app, fetch invoices from API
-        // For now, use mock data
-        setInvoices(mockInvoices)
+  
+        // ✅ Replace mock data with contract data
+        const rawInvoices = await getInvoiceDetails()
+        const formattedInvoices = rawInvoices.map((inv: any, i: number) => ({
+          id: `INV-${new Date(inv.issueDate * 1000).getFullYear()}-${String(i + 1).padStart(3, "0")}`,
+          clientName: inv.clientName,
+          amount: `${Number(inv.amount) / 1e18} KRW`,
+          issueDate: new Date(Number(inv.issueDate) * 1000).toISOString().slice(0, 10),
+          dueDate: new Date(Number(inv.dueDate) * 1000).toISOString().slice(0, 10),
+          status: convertStatus(inv.status),
+          fileName: inv.fileName || "N/A",
+          loanAmount: inv.loanAmount ? `${Number(inv.loanAmount) / 1e6} USDC` : null,
+          interestRate: inv.interestRate ? `${inv.interestRate}%` : null,
+          loanDate: inv.loanDate ? new Date(Number(inv.loanDate) * 1000).toISOString().slice(0, 10) : null,
+          nft: inv.nftMinted
+            ? {
+                tokenId: inv.tokenId?.toString(),
+                contractAddress: inv.contractAddress,
+                blockchain: "HashKey Chain",
+                imageUrl: "/placeholder.svg?height=300&width=300",
+                mintedDate: new Date(Number(inv.mintedDate) * 1000).toISOString().slice(0, 10),
+              }
+            : null,
+        }))
+  
+        setInvoices(formattedInvoices)
       } catch (err) {
         console.error("상태 확인 실패", err)
         setStatus("error")
       }
     }
-
+  
     checkStatus()
   }, [isConnected, address])
+  
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
