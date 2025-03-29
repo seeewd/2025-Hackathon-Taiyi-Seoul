@@ -3,7 +3,7 @@ import { hashkeyChainTestnet } from "./chains"
 import invoicePlatformJsonAbi from "./abi/invoiceabi.json" assert { type: "json" }
 import { getAccount } from "@wagmi/core"
 
-const INVOICE_PLATFORM_ADDRESS: `0x${string}` = "0x0000000000000000000000000000000000000000"
+const INVOICE_PLATFORM_ADDRESS: `0x${string}` = "0xAACa5c47fc3F6ca0E5eD54630729e6690c437795"
 
 export const publicClient = createPublicClient({
   chain: hashkeyChainTestnet,
