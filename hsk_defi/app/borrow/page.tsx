@@ -51,7 +51,7 @@ export default function BorrowPage() {
   useEffect(() => {
     const checkStatus = async () => {
       if (!isConnected || !address) return
-
+  
       try {
         const res = await fetch("/api/wallet-status", {
           method: "POST",
@@ -61,40 +61,59 @@ export default function BorrowPage() {
         })
         const data = await res.json()
         setStatus(data.status || "error")
-
-        // ✅ Replace mock data with contract data
+  
+        // 📦 fetch only my invoices
         const rawInvoices = await getInvoiceDetails()
-        const formattedInvoices = rawInvoices.map((inv: any, i: number) => ({
-          id: `INV-${new Date(inv.issueDate * 1000).getFullYear()}-${String(i + 1).padStart(3, "0")}`,
-          clientName: inv.clientName,
-          amount: `${Number(inv.amount) / 1e18} KRW`,
-          issueDate: new Date(Number(inv.issueDate) * 1000).toISOString().slice(0, 10),
-          dueDate: new Date(Number(inv.dueDate) * 1000).toISOString().slice(0, 10),
-          status: convertStatus(inv.status),
-          fileName: inv.fileName || "N/A",
-          loanAmount: inv.loanAmount ? `${Number(inv.loanAmount) / 1e6} USDC` : null,
-          interestRate: inv.interestRate ? `${inv.interestRate}%` : null,
-          loanDate: inv.loanDate ? new Date(Number(inv.loanDate) * 1000).toISOString().slice(0, 10) : null,
-          nft: inv.nftMinted
-            ? {
-              tokenId: inv.tokenId?.toString(),
-              contractAddress: inv.contractAddress,
-              blockchain: "HashKey Chain",
-              imageUrl: "/placeholder.svg?height=300&width=300",
-              mintedDate: new Date(Number(inv.mintedDate) * 1000).toISOString().slice(0, 10),
-            }
-            : null,
-        }))
-
+        console.log("📦 내 인보이스:", rawInvoices)
+  
+        const formattedInvoices = rawInvoices.map((inv: any, i: number) => {
+          const issueTimestamp = Number(inv.issueDate ?? 0) * 1000
+          const dueTimestamp = Number(inv.dueDate ?? 0) * 1000
+        
+          return {
+            id: `INV-${new Date().getFullYear()}-${String(i + 1).padStart(3, "0")}`,
+            clientName: inv.clientName || "N/A",
+            amount: inv.amount ? `${Number(inv.amount) / 1e18} KRW` : "0 KRW",
+            issueDate:
+              !isNaN(issueTimestamp) && issueTimestamp > 0
+                ? new Date(issueTimestamp).toISOString().slice(0, 10)
+                : "N/A",
+            dueDate:
+              !isNaN(dueTimestamp) && dueTimestamp > 0
+                ? new Date(dueTimestamp).toISOString().slice(0, 10)
+                : "N/A",
+            status: convertStatus(Number(inv.status)),
+            fileName: inv.fileName || "N/A",
+            loanAmount: inv.loanAmount ? `${Number(inv.loanAmount) / 1e6} USDC` : null,
+            interestRate: inv.interestRate ? `${inv.interestRate}%` : null,
+            loanDate: inv.loanDate
+              ? new Date(Number(inv.loanDate) * 1000).toISOString().slice(0, 10)
+              : null,
+            nft: inv.nftMinted
+              ? {
+                  tokenId: inv.tokenId?.toString(),
+                  contractAddress: inv.contractAddress,
+                  blockchain: "HashKey Chain",
+                  imageUrl: "/placeholder.svg?height=300&width=300",
+                  mintedDate: inv.mintedDate
+                    ? new Date(Number(inv.mintedDate) * 1000).toISOString().slice(0, 10)
+                    : "N/A",
+                }
+              : null,
+          }
+        })
+        
+  
         setInvoices(formattedInvoices)
       } catch (err) {
         console.error("상태 확인 실패", err)
         setStatus("error")
       }
     }
-
+  
     checkStatus()
   }, [isConnected, address])
+  
 
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -3,25 +3,27 @@ import { hashkeyChainTestnet } from "./chains"
 import invoicePlatformJsonAbi from "./abi/invoiceabi.json" assert { type: "json" }
 import { getAccount } from "@wagmi/core"
 import { getWalletClient } from "./walletClient"
+import { config } from "@/wagmi-config"
 
 const INVOICE_PLATFORM_ADDRESS: `0x${string}` = "0xAACa5c47fc3F6ca0E5eD54630729e6690c437795"
 const ADMIN_ADDRESS: `0x${string}` = "0x0c5fde19219d81a826C9E01bE4f0C00fe333cC8e"
 
-export type RawInvoice = {
+export type Invoice = {
   clientName: string
   amount: bigint
   issueDate: bigint
   dueDate: bigint
-  fileName: string
   status: number
-  tokenId?: bigint
-  contractAddress?: string
-  nftMinted?: boolean
+  fileName: string
   loanAmount?: bigint
   interestRate?: number
   loanDate?: bigint
+  nftMinted: boolean
+  tokenId?: bigint
+  contractAddress?: string
   mintedDate?: bigint
 }
+
 
 export const publicClient = createPublicClient({
   chain: hashkeyChainTestnet,
@@ -34,20 +36,26 @@ export const invoicePlatformContract = {
 }
 
 // === VIEW FUNCTIONS ===
-
-export async function getInvoiceDetails(): Promise<RawInvoice[]> {
+export async function getInvoiceDetails(): Promise<Invoice[]> {
   try {
-    const data = await publicClient.readContract({
-      address: INVOICE_PLATFORM_ADDRESS,
-      abi: invoicePlatformJsonAbi as Abi,
+    const account = getAccount(config)
+    const address = account?.address
+
+    if (!address) {
+      throw new Error("Wallet not connected")
+    }
+    return await publicClient.readContract({
+      ...invoicePlatformContract,
       functionName: "getMyInvoices",
-    })
-    return data as RawInvoice[]
+      account: address,
+    }) as Invoice[]
+    
   } catch (error) {
     console.error("Error fetching invoice details:", error)
     throw error
   }
 }
+
 
 export async function getInvoiceById(invoiceId: bigint) {
   try {
