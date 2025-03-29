@@ -1,19 +1,14 @@
-import { Abi, createPublicClient, createWalletClient, custom, http } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { Abi, createPublicClient, http } from "viem";
+import { getWalletClient as wagmiGetWalletClient, getAccount } from "@wagmi/core";
 import { hashkeyChainTestnet } from "./chains";
 import tokenScoreAbi from "./abi/tokenscoreabi.json" assert { type: "json" };
+import { config } from "@/wagmi-config";
 
-const TOKENSCORE_CONTRACT_ADDRESS: `0x${string}` = "0x0000000000000000000000000000000000000000";
+const TOKENSCORE_CONTRACT_ADDRESS: `0x${string}` = "0xcad903821B8D9a9820aBe1d0ca74904D6216f45F";
 
 export const publicClient = createPublicClient({
   chain: hashkeyChainTestnet,
   transport: http(),
-});
-
-export const walletClient = createWalletClient({
-  account: privateKeyToAccount("0xYOUR_PRIVATE_KEY"),
-  chain: hashkeyChainTestnet,
-  transport: custom(window.ethereum),
 });
 
 export const tokenScoreContract = {
@@ -21,11 +16,18 @@ export const tokenScoreContract = {
   abi: tokenScoreAbi as Abi,
 };
 
+// === Utility to get Wallet Client ===
+async function getWalletClient() {
+  const client = await wagmiGetWalletClient(config);
+  if (!client) throw new Error("Wallet not connected");
+  return client;
+}
+
 // === VIEW FUNCTIONS ===
+
 export async function getToken(vault: `0x${string}`) {
   return publicClient.readContract({
-    address: TOKENSCORE_CONTRACT_ADDRESS,
-    abi: tokenScoreAbi as Abi,
+    ...tokenScoreContract,
     functionName: "getToken",
     args: [vault],
   });
@@ -33,33 +35,34 @@ export async function getToken(vault: `0x${string}`) {
 
 export async function getVaultStats(vault: `0x${string}`) {
   return publicClient.readContract({
-    address: TOKENSCORE_CONTRACT_ADDRESS,
-    abi: tokenScoreAbi as Abi,
+    ...tokenScoreContract,
     functionName: "vaultStats",
     args: [vault],
-  });
+  }) as Promise<{
+    token: bigint
+    lastUpdate: bigint
+    loanCount: bigint
+    deposit: bigint
+  }>;
 }
 
 export async function getMaxToken() {
   return publicClient.readContract({
-    address: TOKENSCORE_CONTRACT_ADDRESS,
-    abi: tokenScoreAbi as Abi,
+    ...tokenScoreContract,
     functionName: "MAX_TOKEN",
   });
 }
 
 export async function getMinToken() {
   return publicClient.readContract({
-    address: TOKENSCORE_CONTRACT_ADDRESS,
-    abi: tokenScoreAbi as Abi,
+    ...tokenScoreContract,
     functionName: "MIN_TOKEN",
   });
 }
 
 export async function calculateDecay(deposit: bigint) {
   return publicClient.readContract({
-    address: TOKENSCORE_CONTRACT_ADDRESS,
-    abi: tokenScoreAbi as Abi,
+    ...tokenScoreContract,
     functionName: "calculateDecay",
     args: [deposit],
   });
@@ -67,8 +70,7 @@ export async function calculateDecay(deposit: bigint) {
 
 export async function log2(x: bigint) {
   return publicClient.readContract({
-    address: TOKENSCORE_CONTRACT_ADDRESS,
-    abi: tokenScoreAbi as Abi,
+    ...tokenScoreContract,
     functionName: "log2",
     args: [x],
   });
@@ -76,54 +78,64 @@ export async function log2(x: bigint) {
 
 export async function min(a: bigint, b: bigint) {
   return publicClient.readContract({
-    address: TOKENSCORE_CONTRACT_ADDRESS,
-    abi: tokenScoreAbi as Abi,
+    ...tokenScoreContract,
     functionName: "min",
     args: [a, b],
   });
 }
 
 // === WRITE FUNCTIONS ===
+
 export async function registerVault(vault: `0x${string}`, initialDeposit: bigint) {
+  const walletClient = await getWalletClient();
+  const account = getAccount(config).address!;
   return walletClient.writeContract({
-    address: TOKENSCORE_CONTRACT_ADDRESS,
-    abi: tokenScoreAbi as Abi,
+    ...tokenScoreContract,
+    account,
     functionName: "registerVault",
     args: [vault, initialDeposit],
   });
 }
 
 export async function updateDeposit(vault: `0x${string}`, newAmount: bigint) {
+  const walletClient = await getWalletClient();
+  const account = getAccount(config).address!;
   return walletClient.writeContract({
-    address: TOKENSCORE_CONTRACT_ADDRESS,
-    abi: tokenScoreAbi as Abi,
+    ...tokenScoreContract,
+    account,
     functionName: "updateDeposit",
     args: [vault, newAmount],
   });
 }
 
 export async function useToken(vault: `0x${string}`) {
+  const walletClient = await getWalletClient();
+  const account = getAccount(config).address!;
   return walletClient.writeContract({
-    address: TOKENSCORE_CONTRACT_ADDRESS,
-    abi: tokenScoreAbi as Abi,
+    ...tokenScoreContract,
+    account,
     functionName: "useToken",
     args: [vault],
   });
 }
 
 export async function recoverToken(vault: `0x${string}`) {
+  const walletClient = await getWalletClient();
+  const account = getAccount(config).address!;
   return walletClient.writeContract({
-    address: TOKENSCORE_CONTRACT_ADDRESS,
-    abi: tokenScoreAbi as Abi,
+    ...tokenScoreContract,
+    account,
     functionName: "recoverToken",
     args: [vault],
   });
 }
 
 export async function transferOwnership(newOwner: `0x${string}`) {
+  const walletClient = await getWalletClient();
+  const account = getAccount(config).address!;
   return walletClient.writeContract({
-    address: TOKENSCORE_CONTRACT_ADDRESS,
-    abi: tokenScoreAbi as Abi,
+    ...tokenScoreContract,
+    account,
     functionName: "transferOwnership",
     args: [newOwner],
   });

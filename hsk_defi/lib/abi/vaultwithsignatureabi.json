@@ -166,19 +166,6 @@
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "depositFor",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
 				"name": "",
 				"type": "address"
 			}

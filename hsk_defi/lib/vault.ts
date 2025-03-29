@@ -1,19 +1,14 @@
-import { Abi, createPublicClient, createWalletClient, custom, http } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { Abi, createPublicClient, http } from "viem";
+import { getWalletClient as wagmiGetWalletClient, getAccount } from '@wagmi/core';
 import { hashkeyChainTestnet } from "./chains";
-import vaultAbi from "./abi/vaultwithsignatureabi.json" assert { type: "json"};
+import vaultAbi from "./abi/vaultwithsignatureabi.json" assert { type: "json" };
+import { config } from "@/wagmi-config";
 
-const VAULT_CONTRACT_ADDRESS: `0x${string}` = "0x0000000000000000000000000000000000000000";
+const VAULT_CONTRACT_ADDRESS: `0x${string}` = "0x3caBb373E927d17c364484a34292fC6B6F2bfB5A";
 
 export const publicClient = createPublicClient({
   chain: hashkeyChainTestnet,
   transport: http(),
-});
-
-export const walletClient = createWalletClient({
-  account: privateKeyToAccount("0xYOUR_PRIVATE_KEY"),
-  chain: hashkeyChainTestnet,
-  transport: custom(window.ethereum),
 });
 
 export const vaultContract = {
@@ -22,29 +17,40 @@ export const vaultContract = {
 };
 
 // === VIEW FUNCTIONS ===
+
 export async function getVaultBalance(user: `0x${string}`) {
   return publicClient.readContract({
-    address: VAULT_CONTRACT_ADDRESS,
-    abi: vaultAbi as Abi,
+    ...vaultContract,
     functionName: "balances",
     args: [user],
   });
 }
 
-// === WRITE FUNCTIONS ===
+// === WRITE FUNCTIONS (with wagmi.getWalletClient) ===
+
+async function getWalletClient() {
+  const client = await wagmiGetWalletClient(config);
+  if (!client) throw new Error("Wallet not connected");
+  return client;
+}
+
 export async function createVault() {
+  const walletClient = await getWalletClient();
+  const account = getAccount(config).address!;
   return walletClient.writeContract({
-    address: VAULT_CONTRACT_ADDRESS,
-    abi: vaultAbi as Abi,
+    ...vaultContract,
+    account,
     functionName: "createVault",
     args: [],
   });
 }
 
 export async function deposit(amount: bigint) {
+  const walletClient = await getWalletClient();
+  const account = getAccount(config).address!;
   return walletClient.writeContract({
-    address: VAULT_CONTRACT_ADDRESS,
-    abi: vaultAbi as Abi,
+    ...vaultContract,
+    account,
     functionName: "deposit",
     args: [],
     value: amount,
@@ -52,30 +58,24 @@ export async function deposit(amount: bigint) {
 }
 
 export async function withdraw() {
+  const walletClient = await getWalletClient();
+  const account = getAccount(config).address!;
   return walletClient.writeContract({
-    address: VAULT_CONTRACT_ADDRESS,
-    abi: vaultAbi as Abi,
+    ...vaultContract,
+    account,
     functionName: "withdraw",
     args: [],
   });
 }
 
 export async function recoverTokens(vaults: `0x${string}`[]) {
+  const walletClient = await getWalletClient();
+  const account = getAccount(config).address!;
   return walletClient.writeContract({
-    address: VAULT_CONTRACT_ADDRESS,
-    abi: vaultAbi as Abi,
+    ...vaultContract,
+    account,
     functionName: "recoverTokens",
     args: [vaults],
-  });
-}
-
-export async function depositFor(user: `0x${string}`, amount: bigint) {
-  return walletClient.writeContract({
-    address: VAULT_CONTRACT_ADDRESS,
-    abi: vaultAbi as Abi,
-    functionName: "depositFor",
-    args: [user],
-    value: amount,
   });
 }
 
@@ -86,9 +86,11 @@ export async function withdrawWithSignature(
   deadline: bigint,
   signature: `0x${string}`
 ) {
+  const walletClient = await getWalletClient();
+  const account = getAccount(config).address!;
   return walletClient.writeContract({
-    address: VAULT_CONTRACT_ADDRESS,
-    abi: vaultAbi as Abi,
+    ...vaultContract,
+    account,
     functionName: "withdrawWithSignature",
     args: [user, target, amount, deadline, signature],
   });
