@@ -56,7 +56,7 @@ export async function deposit(amount: bigint) {
     value: amount,
   });
 }
-
+//auto
 export async function withdraw() {
   const walletClient = await getWalletClient();
   const account = getAccount(config).address!;
