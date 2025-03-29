@@ -52,7 +52,7 @@ export default function BorrowPage() {
   useEffect(() => {
     const checkStatus = async () => {
       if (!isConnected || !address) return
-  
+
       try {
         const res = await fetch("/api/wallet-status", {
           method: "POST",
@@ -62,19 +62,19 @@ export default function BorrowPage() {
         })
         const data = await res.json()
         setStatus(data.status || "error")
-  
+
         // 📦 fetch only my invoices
         const rawInvoices = await getInvoiceDetails()
         console.log("📦 내 인보이스:", rawInvoices)
-  
+
         const formattedInvoices = rawInvoices.map((inv: any, i: number) => {
           const issueTimestamp = Number(inv.issueDate ?? 0) * 1000
           const dueTimestamp = Number(inv.dueDate ?? 0) * 1000
-        
+
           return {
             id: `INV-${new Date().getFullYear()}-${String(i + 1).padStart(3, "0")}`,
             clientName: inv.clientName || "N/A",
-            amount: inv.amount ? `${Number(inv.amount) / 1e18} KRW` : "0 KRW",
+            amount: inv.amount ? `${Number(inv.amount) / 1e18} HSK` : "0 HSK",
             issueDate:
               !isNaN(issueTimestamp) && issueTimestamp > 0
                 ? new Date(issueTimestamp).toISOString().slice(0, 10)
@@ -92,29 +92,31 @@ export default function BorrowPage() {
               : null,
             nft: inv.nftMinted
               ? {
-                  tokenId: inv.tokenId?.toString(),
-                  contractAddress: inv.contractAddress,
-                  blockchain: "HashKey Chain",
-                  imageUrl: "/placeholder.svg?height=300&width=300",
-                  mintedDate: inv.mintedDate
-                    ? new Date(Number(inv.mintedDate) * 1000).toISOString().slice(0, 10)
-                    : "N/A",
-                }
+                tokenId: inv.tokenId?.toString(),
+                contractAddress: inv.contractAddress,
+                blockchain: "HashKey Chain",
+                imageUrl: "/placeholder.svg?height=300&width=300",
+                mintedDate: inv.mintedDate
+                  ? new Date(Number(inv.mintedDate) * 1000).toISOString().slice(0, 10)
+                  : "N/A",
+              }
               : null,
+            metadataURI: inv.metadataURI,
+            invoiceId: inv.invoiceId,
           }
         })
-        
-  
+
+
         setInvoices(formattedInvoices)
       } catch (err) {
         console.error("상태 확인 실패", err)
         setStatus("error")
       }
     }
-  
+
     checkStatus()
   }, [isConnected, address])
-  
+
 
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -163,13 +165,13 @@ export default function BorrowPage() {
       alert("모든 필수 정보를 입력하세요.")
       return
     }
-  
+
     try {
       const amountBigInt = BigInt(Number(form.amount) * 1e18)
       const dueDateTimestamp = BigInt(new Date(form.dueDate).getTime() / 1000)
-  
+
       await mintInvoice(address as `0x${string}`, amountBigInt, dueDateTimestamp, s3Uri)
-  
+
       alert("인보이스 NFT가 발행되었습니다.")
       setActiveTab("dashboard")
     } catch (err) {
@@ -177,7 +179,7 @@ export default function BorrowPage() {
       alert("인보이스 등록 실패")
     }
   }
-  
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -249,58 +251,33 @@ export default function BorrowPage() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {invoices
-                    .filter((inv) => inv.nft)
+                    // NFT 발행 여부가 true인 인보이스만 필터링
+                    .filter((inv) => inv.nftMinted === true || inv.metadataURI)
                     .map((invoice) => (
-                      <Card
-                        key={invoice.id}
-                        className="overflow-hidden border-2 hover:border-primary/50 transition-all"
-                      >
+                      <Card key={invoice.invoiceId.toString()}>
                         <div className="relative aspect-square bg-muted">
                           <img
-                            src={invoice.nft?.imageUrl || "/placeholder.svg?height=300&width=300"}
-                            alt={`Invoice NFT ${invoice.id}`}
+                            src={encodeURI(invoice.metadataURI || "/placeholder.svg")}
+                            alt={`Invoice NFT ${invoice.invoiceId}`}
                             className="object-cover w-full h-full"
                           />
-                          {getStatusBadge(invoice.status)}
+
+                          <Badge className="absolute top-2 left-2">
+                            {invoice.status}
+                          </Badge>
                         </div>
                         <CardContent className="p-4">
-                          <h3 className="font-semibold text-lg mb-1">{invoice.id}</h3>
-                          <p className="text-sm text-muted-foreground mb-2">{invoice.clientName}</p>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium">{invoice.amount}</span>
-                            <span className="text-xs bg-muted px-2 py-1 rounded-full">만기일: {invoice.dueDate}</span>
-                          </div>
+                          <h3 className="font-semibold text-lg mb-1">INV-{invoice.invoiceId.toString()}</h3>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {invoice.issuer}
+                          </p>
+                          <p className="text-sm font-medium">
+                            {Number(invoice.amount) / 1e18} HSK
+                          </p>
                         </CardContent>
-                        <CardFooter className="p-4 pt-0 flex flex-col gap-2">
-                          <div className="flex items-center justify-between w-full text-xs text-muted-foreground">
-                            <span>Token ID: #{invoice.nft?.tokenId}</span>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6"
-                                    onClick={() => copyToClipboard(invoice.nft?.contractAddress || "")}
-                                  >
-                                    <Copy className="h-3 w-3" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>주소 복사</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                          <Button variant="outline" size="sm" className="w-full flex items-center gap-1">
-                            <ExternalLink className="h-3 w-3" />
-                            <span>NFT 상세 보기</span>
-                          </Button>
-                        </CardFooter>
                       </Card>
                     ))}
-
-                  {invoices.filter((inv) => inv.nft).length === 0 && (
+                  {invoices.filter((inv) => inv.nftMinted === true || inv.metadataURI).length === 0 && (
                     <div className="col-span-full flex flex-col items-center justify-center py-12">
                       <FileText className="h-16 w-16 text-muted-foreground mb-4" />
                       <h3 className="text-xl font-medium mb-2">발행된 NFT가 없습니다</h3>
@@ -510,7 +487,7 @@ export default function BorrowPage() {
                   </div>
                   <div className="space-y-2">
                     <label htmlFor="amount" className="text-sm font-medium">
-                      인보이스 금액 (KRW)
+                      인보이스 금액 (HSK)
                     </label>
                     <input
                       id="amount"
