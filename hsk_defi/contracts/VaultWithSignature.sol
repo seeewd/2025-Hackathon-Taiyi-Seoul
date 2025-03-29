@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "./TokenScore.sol"; // ← 이걸 추가
+import "./TokenScore.sol";
 
 contract VaultWithSignature is Ownable {
     using ECDSA for bytes32;
@@ -19,7 +19,6 @@ contract VaultWithSignature is Ownable {
     event VaultCreated(address indexed user);
     event Deposited(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
-    event WithdrawSigned(address indexed user, address indexed recipient, uint256 amount);
 
     constructor(address _tokenScore) Ownable(msg.sender) {
         tokenScore = TokenScore(_tokenScore);
@@ -45,7 +44,7 @@ contract VaultWithSignature is Ownable {
     /// @notice 직접 입금
     function deposit() public payable {
         balances[msg.sender] += msg.value;
-        tokenScore.updateDeposit(msg.sender, balances[msg.sender]); // ✅ TokenScore 연동
+        tokenScore.updateDeposit(msg.sender, balances[msg.sender]);
         emit Deposited(msg.sender, msg.value);
     }
 
@@ -53,54 +52,58 @@ contract VaultWithSignature is Ownable {
     function depositFor(address user) external payable {
         require(user != address(0), "Invalid user");
         balances[user] += msg.value;
-        tokenScore.updateDeposit(user, balances[user]); // ✅ TokenScore 연동
+        tokenScore.updateDeposit(user, balances[user]);
         emit Deposited(user, msg.value);
     }
 
-    /// @notice 출금
-    function withdraw(uint256 amount) external {
-        require(balances[msg.sender] >= amount, "Not enough balance");
-        balances[msg.sender] -= amount;
-        tokenScore.updateDeposit(msg.sender, balances[msg.sender]); // ✅ TokenScore 연동
+    /// @notice 출금 (내 지갑으로 직접 출금)
+    function withdraw() external {
+        uint256 amount = balances[msg.sender];
+        require(amount > 0, "Nothing to withdraw");
+
+        balances[msg.sender] = 0;
+        tokenScore.updateDeposit(msg.sender, 0);
         payable(msg.sender).transfer(amount);
+
         emit Withdrawn(msg.sender, amount);
     }
+/// @notice 서명 기반 출금
+function withdrawWithSignature(
+    address user,
+    address target,
+    uint256 amount,
+    uint256 deadline,
+    bytes calldata signature
+) external {
+    require(block.timestamp <= deadline, "Signature expired");
+    require(balances[user] >= amount, "Insufficient balance");
 
-    /// @notice 서명 기반 출금
-    function withdrawWithSignature(
-        address user,
-        address recipient,
-        uint256 amount,
-        uint256 deadline,
-        bytes calldata signature
-    ) external {
-        require(block.timestamp <= deadline, "Signature expired");
-        require(balances[user] >= amount, "Insufficient balance");
+    bytes32 structHash = keccak256(abi.encode(
+        _TYPEHASH,
+        target,
+        amount,
+        nonces[user],
+        deadline
+    ));
 
-        bytes32 structHash = keccak256(abi.encode(
-            _TYPEHASH,
-            recipient,
-            amount,
-            nonces[user],
-            deadline
-        ));
+    bytes32 digest = keccak256(abi.encodePacked(
+        "\x19\x01",
+        _DOMAIN_SEPARATOR,
+        structHash
+    ));
 
-        bytes32 digest = keccak256(abi.encodePacked(
-            "\x19\x01",
-            _DOMAIN_SEPARATOR,
-            structHash
-        ));
+    address signer = digest.recover(signature);
+    require(signer == user, "Invalid signature");
 
-        address signer = digest.recover(signature);
-        require(signer == user, "Invalid signature");
+    nonces[user]++;
+    balances[user] -= amount;
+    tokenScore.updateDeposit(user, balances[user]); // ✅ TokenScore 연동
+    payable(target).transfer(amount);
 
-        nonces[user]++;
-        balances[user] -= amount;
-        tokenScore.updateDeposit(user, balances[user]); // ✅ TokenScore 연동
-        payable(recipient).transfer(amount);
+    emit Withdrawn(user, amount);
+}
 
-        emit WithdrawSigned(user, recipient, amount);
-    }
+ 
 
     /// @notice 외부에서 회복 (스케줄링)
     function recoverTokens(address[] calldata vaults) external onlyOwner {

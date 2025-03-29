@@ -10,7 +10,6 @@ contract Repayment {
     VaultWithSignature public vaultContract;
     LotteryEngine public lottery;
 
-    address public feeCollector;
     address public admin;
 
     uint256 public constant INTEREST_RATE_BPS = 500; // 5% = 500 basis points
@@ -31,11 +30,10 @@ contract Repayment {
         _;
     }
 
-    constructor(address _invoiceNFT, address _vault, address _lottery, address _feeCollector) {
+    constructor(address _invoiceNFT, address _vault, address _lottery) {
         invoiceNFT = InvoiceNFT(_invoiceNFT);
         vaultContract = VaultWithSignature(payable(_vault));
         lottery = LotteryEngine(_lottery);
-        feeCollector = _feeCollector;
         admin = msg.sender;
     }
 
@@ -53,15 +51,12 @@ contract Repayment {
 
         require(msg.value >= totalDue, "Insufficient repayment");
 
-        // feeCollector에 수수료 송금
-        payable(feeCollector).transfer(fee);
-
         // 당첨된 vault 리스트 가져오기
         address[] memory winners = lottery.getWinningQueue(invoiceId);
         require(winners.length > 0, "No lenders found");
 
-        // 남은 금액: 원금 + 이자 → vault에 분배
-        uint256 shareAmount = (principal + interest) / winners.length;
+        // 전체 금액: 원금 + 이자 + 수수료 → vault에 균등 분배
+        uint256 shareAmount = totalDue / winners.length;
 
         for (uint256 i = 0; i < winners.length; i++) {
             vaultContract.depositFor{value: shareAmount}(winners[i]);
@@ -71,12 +66,6 @@ contract Repayment {
         invoiceNFT.setInvoiceStatus(invoiceId, InvoiceNFT.Status.Paid);
 
         emit Repaid(invoiceId, msg.sender, msg.value, fee, interest, principal);
-    }
-
-    /// @notice feeCollector 변경 (선택)
-    function updateFeeCollector(address newCollector) external onlyAdmin {
-        require(newCollector != address(0), "Invalid address");
-        feeCollector = newCollector;
     }
 
     /// @notice admin 변경 (선택)

@@ -37,7 +37,7 @@ contract LoanExecutor {
     /// @notice queue[0]의 vault가 직접 대출 실행
     function executeLoan(
         uint256 invoiceId,
-        address borrower,
+        address target,
         uint256 amount,
         uint256 deadline,
         bytes calldata signature
@@ -50,24 +50,23 @@ contract LoanExecutor {
 
         InvoiceNFT.InvoiceData memory invoice = invoiceNFT.getInvoice(invoiceId);
         require(invoice.status == InvoiceNFT.Status.Approved, "Invoice not approved");
-        require(invoice.issuer == borrower, "Target must be borrower");
+        require(invoice.issuer == target, "Target must be borrower");
         require(invoice.amount == amount, "Amount mismatch");
 
-        // vault가 사전에 서명한 서명 전달
         vaultContract.withdrawWithSignature(
-            vault, borrower, amount, deadline, signature
+            vault, target, amount, deadline, signature
         );
 
         tokenScore.useToken(vault);
         invoiceNFT.setInvoiceStatus(invoiceId, InvoiceNFT.Status.LoanStarted);
 
-        emit LoanExecuted(invoiceId, vault, borrower, amount);
+        emit LoanExecuted(invoiceId, vault, target, amount);
     }
 
     /// @notice grace period 초과 시 자동 실행
     function autoExecuteLoan(
         uint256 invoiceId,
-        address borrower,
+        address target,
         uint256 amount,
         uint256 deadline,
         bytes calldata signature
@@ -76,17 +75,17 @@ contract LoanExecutor {
 
         InvoiceNFT.InvoiceData memory invoice = invoiceNFT.getInvoice(invoiceId);
         require(invoice.status == InvoiceNFT.Status.Approved, "Invoice not approved");
-        require(invoice.issuer == borrower, "Target must be borrower");
+        require(invoice.issuer == target, "Target must be borrower");
         require(invoice.amount == amount, "Amount mismatch");
 
         vaultContract.withdrawWithSignature(
-            vault, borrower, amount, deadline, signature
+            vault, target, amount, deadline, signature
         );
 
         tokenScore.useToken(vault);
         invoiceNFT.setInvoiceStatus(invoiceId, InvoiceNFT.Status.LoanStarted);
 
-        emit LoanExecuted(invoiceId, vault, borrower, amount);
+        emit LoanExecuted(invoiceId, vault, target, amount);
     }
 
     function updateAdmin(address newAdmin) external onlyAdmin {

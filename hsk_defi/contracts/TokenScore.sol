@@ -32,7 +32,7 @@ contract TokenScore is Ownable {
         stats.loanCount = 0;
     }
 
-    /// @notice Vault 예치금 변경 (LoanVault와 연동)
+    /// @notice Vault 예치금 변경 (Vault와 연동)
     function updateDeposit(address vault, uint256 newAmount) external onlyOwner {
         vaultStats[vault].deposit = newAmount;
         emit DepositUpdated(vault, newAmount);
