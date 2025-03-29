@@ -99,6 +99,22 @@ export async function min(a: bigint, b: bigint) {
   });
 }
 
+export async function getVaultByIndex(index: bigint): Promise<`0x${string}`> {
+  return publicClient.readContract({
+    ...tokenScoreContract,
+    functionName: "allVaults",
+    args: [index],
+  }) as Promise<`0x${string}`>;
+}
+
+export async function getTokenScoreContractAddress(): Promise<`0x${string}`> {
+  return publicClient.readContract({
+    ...tokenScoreContract,
+    functionName: "tokenScore",
+  }) as Promise<`0x${string}`>;
+}
+
+
 // === WRITE FUNCTIONS ===
 
 export async function registerVault(vault: `0x${string}`, initialDeposit: bigint) {
