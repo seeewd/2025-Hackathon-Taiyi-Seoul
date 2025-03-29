@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
-import "../node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./TokenScore.sol"; // ← 이걸 추가
 
 contract VaultWithSignature is Ownable {
@@ -19,7 +19,7 @@ contract VaultWithSignature is Ownable {
     event VaultCreated(address indexed user);
     event Deposited(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
-    event WithdrawSigned(address indexed user, address indexed target, uint256 amount);
+    event WithdrawSigned(address indexed user, address indexed recipient, uint256 amount);
 
     constructor(address _tokenScore) Ownable(msg.sender) {
         tokenScore = TokenScore(_tokenScore);
@@ -69,7 +69,7 @@ contract VaultWithSignature is Ownable {
     /// @notice 서명 기반 출금
     function withdrawWithSignature(
         address user,
-        address target,
+        address recipient,
         uint256 amount,
         uint256 deadline,
         bytes calldata signature
@@ -79,7 +79,7 @@ contract VaultWithSignature is Ownable {
 
         bytes32 structHash = keccak256(abi.encode(
             _TYPEHASH,
-            target,
+            recipient,
             amount,
             nonces[user],
             deadline
@@ -97,9 +97,9 @@ contract VaultWithSignature is Ownable {
         nonces[user]++;
         balances[user] -= amount;
         tokenScore.updateDeposit(user, balances[user]); // ✅ TokenScore 연동
-        payable(target).transfer(amount);
+        payable(recipient).transfer(amount);
 
-        emit WithdrawSigned(user, target, amount);
+        emit WithdrawSigned(user, recipient, amount);
     }
 
     /// @notice 외부에서 회복 (스케줄링)

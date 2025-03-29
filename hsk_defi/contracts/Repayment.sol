@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "./invoice.sol";
-import "./vault.sol";
-import "./lottery.sol";
+import "./InvoiceNFT.sol";
+import "./VaultWithSignature.sol";
+import "./LotteryEngine.sol";
 
 contract Repayment {
     InvoiceNFT public invoiceNFT;

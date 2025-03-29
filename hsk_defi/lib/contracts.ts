@@ -5,7 +5,7 @@ import { hashkeyChainTestnet } from "./chains"
 const INVOICE_PLATFORM_ADDRESS = "0x0000000000000000000000000000000000000000" as const
 
 // ABI for the invoice platform contract(It is sample code in wagmi docs, you must change this code for our project)
-const invoicePlatformAbi = parseAbi([
+const invoicePlatformAbi = [parseAbi([
   // Invoice creation and management
   "function createInvoice(string invoiceId, uint256 amount, uint256 dueDate, address clientAddress) external returns (uint256)",
   "function getInvoice(uint256 invoiceId) external view returns (address issuer, uint256 amount, uint256 dueDate, address clientAddress, uint8 status)",
@@ -21,7 +21,7 @@ const invoicePlatformAbi = parseAbi([
   "event LoanRequested(uint256 indexed invoiceId, address indexed issuer, uint256 amount, uint256 interestRate)",
   "event LoanFunded(uint256 indexed invoiceId, address indexed lender, uint256 amount)",
   "event LoanRepaid(uint256 indexed invoiceId, address indexed issuer, uint256 amount)",
-])
+])]
 
 // Create a public client to interact with the blockchain
 export const publicClient = createPublicClient({

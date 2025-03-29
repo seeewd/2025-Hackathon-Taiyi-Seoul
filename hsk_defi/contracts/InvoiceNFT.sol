@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
 contract InvoiceNFT is ERC721URIStorage {
     uint256 public nextInvoiceId;
@@ -9,6 +9,7 @@ contract InvoiceNFT is ERC721URIStorage {
 
     enum Status {
         Draft,
+        Pending,
         Approved,
         LoanBefore,
         LoanStarted,
@@ -27,6 +28,7 @@ contract InvoiceNFT is ERC721URIStorage {
     }
 
     mapping(uint256 => InvoiceData) public invoices;
+    mapping(address => uint256[]) public userInvoices;
 
     event InvoiceMinted(uint256 indexed invoiceId, address issuer);
     event InvoiceStatusChanged(uint256 indexed invoiceId, Status newStatus);
@@ -57,9 +59,11 @@ contract InvoiceNFT is ERC721URIStorage {
             recipient: recipient,
             amount: amount,
             dueDate: dueDate,
-            status: Status.Draft,
+            status: Status.Pending,
             metadataURI: uri
         });
+
+        userInvoices[msg.sender].push(invoiceId);
 
         emit InvoiceMinted(invoiceId, msg.sender);
         return invoiceId;
@@ -71,14 +75,21 @@ contract InvoiceNFT is ERC721URIStorage {
         emit InvoiceStatusChanged(invoiceId, newStatus);
     }
 
-    /// @notice 현재 상태 확인
-    function getInvoiceStatus(uint256 invoiceId) external view returns (Status) {
-        return invoices[invoiceId].status;
-    }
-
     /// @notice 전체 정보 조회
     function getInvoice(uint256 invoiceId) external view returns (InvoiceData memory) {
         return invoices[invoiceId];
+    }
+
+    /// @notice 내가 발행한 모든 인보이스 조회
+    function getMyInvoices() external view returns (InvoiceData[] memory) {
+        uint256[] storage ids = userInvoices[msg.sender];
+        InvoiceData[] memory result = new InvoiceData[](ids.length);
+
+        for (uint256 i = 0; i < ids.length; i++) {
+            result[i] = invoices[ids[i]];
+        }
+
+        return result;
     }
 
     /// @notice Admin 변경 (선택 사항)

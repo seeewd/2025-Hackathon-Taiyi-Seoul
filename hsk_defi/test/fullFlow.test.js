@@ -15,11 +15,14 @@ describe("Invoice Loan Flow", function () {
     console.log("👤 1");
     const TokenScore = await ethers.getContractFactory("TokenScore");
     tokenScore = await TokenScore.deploy(admin.address);
+    await tokenScore.deployed(); 
     console.log("👤 2");
     console.log("📦 borrower signer:", borrower);
     console.log("📦 borrower address:", borrower?.address);
     
     const Vault = await ethers.getContractFactory("VaultWithSignature");
+    console.log("👤 2.5");
+    //console.log("📦 tokenScore address:", tokenScore?.address);
     vault = await Vault.deploy(tokenScore.address);
     console.log("👤 3");
 
