@@ -136,22 +136,35 @@ export async function getAllInvoices(): Promise<(Invoice & { invoiceId: bigint }
     const account = getAccount(config)
     const address = account?.address
 
-    if (!address) {
-      throw new Error("Wallet not connected")
-    }
+    if (!address) throw new Error("Wallet not connected")
 
     const rawData = await publicClient.readContract({
       ...invoicePlatformContract,
       functionName: "getAllInvoices",
-    }) as Invoice[]
+      account: address,
+    }) as {
+      issuer: string
+      recipient: string
+      amount: bigint
+      dueDate: bigint
+      status: number
+      metadataURI: string
+    }[]
 
     return rawData.map((inv, index) => ({
-      ...inv,
-      invoiceId: BigInt(index), // 필요시 실제 invoiceId 포함하도록 스마트컨트랙트 수정 가능
+      clientName: inv.issuer, 
+      amount: inv.amount,
+      issueDate: BigInt(0), 
+      dueDate: inv.dueDate,
+      status: inv.status,
+      fileName: inv.metadataURI || "",
+      nftMinted: false, 
+      invoiceId: BigInt(index),
     }))
   } catch (error) {
     console.error("Error fetching all invoices (admin only):", error)
     throw error
   }
 }
+
 

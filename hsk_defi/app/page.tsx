@@ -49,7 +49,7 @@ export default function Home() {
                       <div className="space-y-2 text-sm sm:text-base">
                         <div className="flex justify-between">
                           <span>금액:</span>
-                          <span className="font-medium">10,000 USDC</span>
+                          <span className="font-medium">10,000 HSK</span>
                         </div>
                         <div className="flex justify-between">
                           <span>발행일:</span>
