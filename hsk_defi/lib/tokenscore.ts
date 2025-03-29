@@ -24,6 +24,21 @@ async function getWalletClient() {
 }
 
 // === VIEW FUNCTIONS ===
+// Vault 주소 목록 가져오기
+export async function getAllVaults(): Promise<`0x${string}`[]> {
+  return publicClient.readContract({
+    ...tokenScoreContract,
+    functionName: "getAllVaults",
+  }) as Promise<`0x${string}`[]>;
+}
+
+// Vault + token 함께 조회 (VaultWithToken[])
+export async function getAllVaultsWithToken(): Promise<{ vault: `0x${string}`, tokenAtRegister: bigint }[]> {
+  return publicClient.readContract({
+    ...tokenScoreContract,
+    functionName: "getAllVaultsWithToken",
+  }) as Promise<{ vault: `0x${string}`, tokenAtRegister: bigint }[]>;
+}
 
 export async function getToken(vault: `0x${string}`) {
   return publicClient.readContract({

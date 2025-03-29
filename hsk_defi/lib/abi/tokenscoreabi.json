@@ -138,6 +138,49 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "allVaults",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "allVaultsWithToken",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "vault",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "tokenAtRegister",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
 				"name": "deposit",
 				"type": "uint256"
 			}
@@ -151,6 +194,44 @@
 			}
 		],
 		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllVaults",
+		"outputs": [
+			{
+				"internalType": "address[]",
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllVaultsWithToken",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "vault",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "tokenAtRegister",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct TokenScore.VaultWithToken[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{

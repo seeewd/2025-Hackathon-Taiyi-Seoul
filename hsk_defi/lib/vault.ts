@@ -41,7 +41,7 @@ export async function createVault() {
     ...vaultContract,
     account,
     functionName: "createVault",
-    args: [],
+    //args: [],
   });
 }
 
