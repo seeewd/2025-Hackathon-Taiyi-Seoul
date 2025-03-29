@@ -4,7 +4,7 @@ import { hashkeyChainTestnet } from "./chains";
 import tokenScoreAbi from "./abi/tokenscoreabi.json" assert { type: "json" };
 import { config } from "@/wagmi-config";
 
-const TOKENSCORE_CONTRACT_ADDRESS: `0x${string}` = "0xcad903821B8D9a9820aBe1d0ca74904D6216f45F";
+const TOKENSCORE_CONTRACT_ADDRESS: `0x${string}` = "0xabD84F17D1CeF272F54257dAd3a235eC3B941fe3";
 
 export const publicClient = createPublicClient({
   chain: hashkeyChainTestnet,
@@ -16,7 +16,7 @@ export const tokenScoreContract = {
   abi: tokenScoreAbi as Abi,
 };
 
-// === Utility to get Wallet Client ===
+// === Wallet Client ===
 async function getWalletClient() {
   const client = await wagmiGetWalletClient(config);
   if (!client) throw new Error("Wallet not connected");
@@ -24,7 +24,7 @@ async function getWalletClient() {
 }
 
 // === VIEW FUNCTIONS ===
-// Vault 주소 목록 가져오기
+
 export async function getAllVaults(): Promise<`0x${string}`[]> {
   return publicClient.readContract({
     ...tokenScoreContract,
@@ -32,88 +32,90 @@ export async function getAllVaults(): Promise<`0x${string}`[]> {
   }) as Promise<`0x${string}`[]>;
 }
 
-// Vault + token 함께 조회 (VaultWithToken[])
 export async function getAllVaultsWithToken(): Promise<{ vault: `0x${string}`, tokenAtRegister: bigint }[]> {
   return publicClient.readContract({
     ...tokenScoreContract,
     functionName: "getAllVaultsWithToken",
-  }) as Promise<{ vault: `0x${string}`, tokenAtRegister: bigint }[]>;
+  }) as Promise<{ vault: `0x${string}`; tokenAtRegister: bigint }[]>;
 }
 
-export async function getToken(vault: `0x${string}`) {
-  return publicClient.readContract({
+export async function getToken(vault: `0x${string}`): Promise<bigint> {
+  const result = await publicClient.readContract({
     ...tokenScoreContract,
     functionName: "getToken",
     args: [vault],
-  });
+  }) as bigint;
+  return result;
 }
 
-export async function getVaultStats(vault: `0x${string}`) {
+export async function getVaultStats(vault: `0x${string}`): Promise<{
+  token: bigint;
+  lastUpdate: bigint;
+  loanCount: bigint;
+  deposit: bigint;
+}> {
   return publicClient.readContract({
     ...tokenScoreContract,
     functionName: "vaultStats",
     args: [vault],
-  }) as Promise<{
-    token: bigint
-    lastUpdate: bigint
-    loanCount: bigint
-    deposit: bigint
-  }>;
+  }) as unknown as {
+    token: bigint;
+    lastUpdate: bigint;
+    loanCount: bigint;
+    deposit: bigint;
+  };
 }
 
-export async function getMaxToken() {
-  return publicClient.readContract({
+export async function getMaxToken(): Promise<bigint> {
+  const result = await publicClient.readContract({
     ...tokenScoreContract,
     functionName: "MAX_TOKEN",
   });
+  return result as bigint;
 }
 
-export async function getMinToken() {
-  return publicClient.readContract({
+export async function getMinToken(): Promise<bigint> {
+  const result = await publicClient.readContract({
     ...tokenScoreContract,
     functionName: "MIN_TOKEN",
   });
+  return result as bigint;
 }
 
-export async function calculateDecay(deposit: bigint) {
-  return publicClient.readContract({
+export async function calculateDecay(deposit: bigint): Promise<bigint> {
+  const result = await publicClient.readContract({
     ...tokenScoreContract,
     functionName: "calculateDecay",
     args: [deposit],
-  });
+  }) as unknown as bigint;
+  return result;
 }
 
-export async function log2(x: bigint) {
-  return publicClient.readContract({
+export async function log2(x: bigint): Promise<bigint> {
+  const result = await publicClient.readContract({
     ...tokenScoreContract,
     functionName: "log2",
     args: [x],
   });
+  return result as bigint;
 }
 
-export async function min(a: bigint, b: bigint) {
-  return publicClient.readContract({
+export async function min(a: bigint, b: bigint): Promise<bigint> {
+  const result = await publicClient.readContract({
     ...tokenScoreContract,
     functionName: "min",
     args: [a, b],
   });
+  return result as bigint;
 }
 
-export async function getVaultByIndex(index: bigint): Promise<`0x${string}`> {
+export async function getVaultAddressByIndex(index: bigint): Promise<`0x${string}`> {
   return publicClient.readContract({
     ...tokenScoreContract,
     functionName: "allVaults",
     args: [index],
-  }) as Promise<`0x${string}`>;
+  }) as unknown as Promise<`0x${string}`>;
 }
-
-export async function getTokenScoreContractAddress(): Promise<`0x${string}`> {
-  return publicClient.readContract({
-    ...tokenScoreContract,
-    functionName: "tokenScore",
-  }) as Promise<`0x${string}`>;
-}
-
 
 // === WRITE FUNCTIONS ===
 

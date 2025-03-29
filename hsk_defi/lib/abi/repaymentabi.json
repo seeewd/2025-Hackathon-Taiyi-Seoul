@@ -1,39 +1,43 @@
 [
 	{
+		"anonymous": false,
 		"inputs": [
 			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "loanId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
 				"internalType": "address",
-				"name": "_invoiceNFT",
+				"name": "borrower",
 				"type": "address"
 			},
 			{
-				"internalType": "address",
-				"name": "_vault",
-				"type": "address"
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "principal",
+				"type": "uint256"
 			},
 			{
-				"internalType": "address",
-				"name": "_lottery",
-				"type": "address"
+				"indexed": false,
+				"internalType": "address[]",
+				"name": "executors",
+				"type": "address[]"
 			}
 		],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
+		"name": "LoanRegistered",
+		"type": "event"
 	},
 	{
 		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": true,
+				"indexed": false,
 				"internalType": "uint256",
-				"name": "invoiceId",
+				"name": "loanId",
 				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "borrower",
-				"type": "address"
 			},
 			{
 				"indexed": false,
@@ -44,28 +48,16 @@
 			{
 				"indexed": false,
 				"internalType": "uint256",
-				"name": "feeAmount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "interestAmount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "principalAmount",
+				"name": "distributedPerExecutor",
 				"type": "uint256"
 			}
 		],
-		"name": "Repaid",
+		"name": "LoanRepaid",
 		"type": "event"
 	},
 	{
 		"inputs": [],
-		"name": "BPS_DENOMINATOR",
+		"name": "INTEREST_RATE",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -78,64 +70,12 @@
 	},
 	{
 		"inputs": [],
-		"name": "FEE_RATE_BPS",
+		"name": "TAX_RATE",
 		"outputs": [
 			{
 				"internalType": "uint256",
 				"name": "",
 				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "INTEREST_RATE_BPS",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "admin",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "invoiceNFT",
-		"outputs": [
-			{
-				"internalType": "contract InvoiceNFT",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "lottery",
-		"outputs": [
-			{
-				"internalType": "contract LotteryEngine",
-				"name": "",
-				"type": "address"
 			}
 		],
 		"stateMutability": "view",
@@ -145,7 +85,106 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "invoiceId",
+				"name": "loanId",
+				"type": "uint256"
+			}
+		],
+		"name": "getTotalRepayment",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "total",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "interest",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "tax",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "loans",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "borrower",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "principal",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "startTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "repaid",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "nextLoanId",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "borrower",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "principal",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address[]",
+				"name": "executors",
+				"type": "address[]"
+			}
+		],
+		"name": "registerLoan",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "loanId",
 				"type": "uint256"
 			}
 		],
@@ -155,29 +194,7 @@
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newAdmin",
-				"type": "address"
-			}
-		],
-		"name": "updateAdmin",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "vaultContract",
-		"outputs": [
-			{
-				"internalType": "contract VaultWithSignature",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
+		"stateMutability": "payable",
+		"type": "receive"
 	}
 ]

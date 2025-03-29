@@ -1,19 +1,19 @@
 import { Abi, createPublicClient, http } from "viem";
 import { getWalletClient as wagmiGetWalletClient, getAccount } from "@wagmi/core";
 import { config } from "@/wagmi-config";
-import { hashkeyChainTestnet } from "@/lib/chains";
-import loanQueueAbi from "./abi/loanqueuemanager.json" assert { type: "json" };
+import { hashkeyChainTestnet } from "./chains";
+import loanQueueManagerAbi from "./abi/loanqueuemanager.json" assert { type: "json" };
 
-const LOAN_QUEUE_CONTRACT_ADDRESS: `0x${string}` = "0x0000000000000000000000000000000000000000"; // Replace with actual address
+const LOAN_QUEUE_MANAGER_ADDRESS: `0x${string}` = "0x1355c3Db3274D0200d5792403708A3dcba38ae84"; // ✅ 주소 입력
 
 export const publicClient = createPublicClient({
   chain: hashkeyChainTestnet,
   transport: http(),
 });
 
-const loanQueueContract = {
-  address: LOAN_QUEUE_CONTRACT_ADDRESS,
-  abi: loanQueueAbi as Abi,
+export const loanQueueManagerContract = {
+  address: LOAN_QUEUE_MANAGER_ADDRESS,
+  abi: loanQueueManagerAbi as Abi,
 };
 
 async function getWalletClient() {
@@ -24,97 +24,58 @@ async function getWalletClient() {
 
 // === VIEW FUNCTIONS ===
 
-export async function getQueue(invoiceId: bigint) {
-  return publicClient.readContract({
-    ...loanQueueContract,
-    functionName: "getQueue",
-    args: [invoiceId],
-  });
-}
+// === VIEW FUNCTIONS ===
 
-export async function getInvoiceQueue(invoiceId: bigint, index: number) {
-  return publicClient.readContract({
-    ...loanQueueContract,
-    functionName: "invoiceQueues",
-    args: [invoiceId, BigInt(index)],
-  });
-}
-
-export async function getAllParticipants(invoiceId: bigint, index: number) {
-  return publicClient.readContract({
-    ...loanQueueContract,
-    functionName: "allParticipants",
-    args: [invoiceId, BigInt(index)],
-  });
-}
-
-export async function getGracePeriod() {
-  return publicClient.readContract({
-    ...loanQueueContract,
-    functionName: "GRACE_PERIOD",
-  });
-}
-
-export async function getOwner() {
-  return publicClient.readContract({
-    ...loanQueueContract,
-    functionName: "owner",
-  });
-}
+export async function getQueue(): Promise<`0x${string}`[]> {
+    return publicClient.readContract({
+      ...loanQueueManagerContract,
+      functionName: "getQueue",
+    }) as Promise<`0x${string}`[]>;
+  }
+  
+  export async function getWinnerByIndex(index: bigint): Promise<`0x${string}`> {
+    return publicClient.readContract({
+      ...loanQueueManagerContract,
+      functionName: "winnerQueue",
+      args: [index],
+    }) as Promise<`0x${string}`>;
+  }
+  
+  export async function getLotteryEngineAddress(): Promise<`0x${string}`> {
+    return publicClient.readContract({
+      ...loanQueueManagerContract,
+      functionName: "lotteryEngine",
+    }) as Promise<`0x${string}`>;
+  }
+  
+  export async function getTokenScoreAddress(): Promise<`0x${string}`> {
+    return publicClient.readContract({
+      ...loanQueueManagerContract,
+      functionName: "tokenScore",
+    }) as Promise<`0x${string}`>;
+  }
+  
 
 // === WRITE FUNCTIONS ===
 
-export async function addInitialWinners(invoiceId: bigint, vaults: `0x${string}`[]) {
+export async function fillQueue(count: bigint) {
   const walletClient = await getWalletClient();
   const account = getAccount(config).address!;
   return walletClient.writeContract({
-    ...loanQueueContract,
+    ...loanQueueManagerContract,
     account,
-    functionName: "addInitialWinners",
-    args: [invoiceId, vaults],
+    functionName: "fillQueue",
+    args: [count],
   });
 }
 
-export async function autoApproveIfExpired(invoiceId: bigint) {
+export async function cancelAndReplaceByIndex(index: bigint) {
   const walletClient = await getWalletClient();
   const account = getAccount(config).address!;
   return walletClient.writeContract({
-    ...loanQueueContract,
+    ...loanQueueManagerContract,
     account,
-    functionName: "autoApproveIfExpired",
-    args: [invoiceId],
-  });
-}
-
-export async function declineAndReplace(invoiceId: bigint, newVault: `0x${string}`) {
-  const walletClient = await getWalletClient();
-  const account = getAccount(config).address!;
-  return walletClient.writeContract({
-    ...loanQueueContract,
-    account,
-    functionName: "declineAndReplace",
-    args: [invoiceId, newVault],
-  });
-}
-
-export async function transferOwnership(newOwner: `0x${string}`) {
-  const walletClient = await getWalletClient();
-  const account = getAccount(config).address!;
-  return walletClient.writeContract({
-    ...loanQueueContract,
-    account,
-    functionName: "transferOwnership",
-    args: [newOwner],
-  });
-}
-
-export async function renounceOwnership() {
-  const walletClient = await getWalletClient();
-  const account = getAccount(config).address!;
-  return walletClient.writeContract({
-    ...loanQueueContract,
-    account,
-    functionName: "renounceOwnership",
-    args: [],
+    functionName: "cancelAndReplace",
+    args: [index],
   });
 }

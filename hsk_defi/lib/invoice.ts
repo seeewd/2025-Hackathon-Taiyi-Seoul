@@ -5,7 +5,7 @@ import { getAccount, writeContract } from "@wagmi/core"
 import { getWalletClient } from "./walletClient"
 import { config } from "@/wagmi-config"
 
-const INVOICE_PLATFORM_ADDRESS: `0x${string}` = "0x447Ee9a8f622672BF988dc6324451692361C7667"
+const INVOICE_PLATFORM_ADDRESS: `0x${string}` = "0x0e016f6D083e5Ad48F4BfcE68eF74cAD28C00f16"
 const ADMIN_ADDRESS: `0x${string}` = "0xD06F669B991742808e81db1c5241080EFeA6f095"
 
 export type Invoice = {

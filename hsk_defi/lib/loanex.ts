@@ -1,103 +1,83 @@
-import { Abi, createPublicClient, createWalletClient, custom, http } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { Abi, createPublicClient, http } from "viem";
+import { getWalletClient as wagmiGetWalletClient, getAccount } from "@wagmi/core";
+import { config } from "@/wagmi-config";
 import { hashkeyChainTestnet } from "./chains";
-import loanExecuteJsonAbi from "./abi/loanexabi.json" assert { type: "json" };
+import loanExecutorAbi from "./abi/loanexabi.json" assert { type: "json" };
 
-const INVOICE_PLATFORM_ADDRESS: `0x${string}` = "0x0000000000000000000000000000000000000000";
+const LOAN_EXECUTOR_ADDRESS: `0x${string}` = "0x1355c3Db3274D0200d5792403708A3dcba38ae84"; // ← 실제 배포 주소로 바꿔줘
 
 export const publicClient = createPublicClient({
   chain: hashkeyChainTestnet,
   transport: http(),
 });
 
-export const walletClient = createWalletClient({
-  account: privateKeyToAccount("0xYOUR_PRIVATE_KEY"),
-  chain: hashkeyChainTestnet,
-  transport: http(),
-});
-
-export const invoicePlatformContract = {
-  address: INVOICE_PLATFORM_ADDRESS,
-  abi: loanExecuteJsonAbi as Abi,
+export const loanExecutorContract = {
+  address: LOAN_EXECUTOR_ADDRESS,
+  abi: loanExecutorAbi as Abi,
 };
 
-// === VIEW FUNCTIONS ===
-export async function getAdmin() {
+async function getWalletClient() {
+  const client = await wagmiGetWalletClient(config);
+  if (!client) throw new Error("Wallet not connected");
+  return client;
+}
+
+// === READ FUNCTIONS ===
+
+export async function getAdmin(): Promise<`0x${string}`> {
   return publicClient.readContract({
-    address: INVOICE_PLATFORM_ADDRESS,
-    abi: loanExecuteJsonAbi as Abi,
+    ...loanExecutorContract,
     functionName: "admin",
-  });
+  }) as Promise<`0x${string}`>;
 }
 
-export async function getInvoiceNFTAddress() {
+export async function getQueueManagerAddress(): Promise<`0x${string}`> {
   return publicClient.readContract({
-    address: INVOICE_PLATFORM_ADDRESS,
-    abi: loanExecuteJsonAbi as Abi,
+    ...loanExecutorContract,
+    functionName: "queueManager",
+  }) as Promise<`0x${string}`>;
+}
+
+export async function getInvoiceNFTAddress(): Promise<`0x${string}`> {
+  return publicClient.readContract({
+    ...loanExecutorContract,
     functionName: "invoiceNFT",
-  });
+  }) as Promise<`0x${string}`>;
 }
 
-export async function getLoanQueueAddress() {
+export async function isLoanExecuted(invoiceId: bigint): Promise<boolean> {
   return publicClient.readContract({
-    address: INVOICE_PLATFORM_ADDRESS,
-    abi: loanExecuteJsonAbi as Abi,
-    functionName: "loanQueue",
-  });
-}
-
-export async function getVaultContractAddress() {
-  return publicClient.readContract({
-    address: INVOICE_PLATFORM_ADDRESS,
-    abi: loanExecuteJsonAbi as Abi,
-    functionName: "vaultContract",
-  });
-}
-
-export async function getTokenScoreAddress() {
-  return publicClient.readContract({
-    address: INVOICE_PLATFORM_ADDRESS,
-    abi: loanExecuteJsonAbi as Abi,
-    functionName: "tokenScore",
-  });
+    ...loanExecutorContract,
+    functionName: "loanExecuted",
+    args: [invoiceId],
+  }) as Promise<boolean>;
 }
 
 // === WRITE FUNCTIONS ===
-export async function updateAdmin(newAdmin: `0x${string}`) {
-  return walletClient.writeContract({
-    address: INVOICE_PLATFORM_ADDRESS,
-    abi: loanExecuteJsonAbi as Abi,
-    functionName: "updateAdmin",
-    args: [newAdmin],
-  });
-}
 
-export async function executeLoan(
-  invoiceId: bigint,
-  target: `0x${string}`,
-  amount: bigint,
-  deadline: bigint,
-  signature: `0x${string}`
-) {
+export async function executeLoan(invoiceId: bigint, value: bigint) {
+  const walletClient = await getWalletClient();
+  const account = getAccount(config).address!;
   return walletClient.writeContract({
-    address: INVOICE_PLATFORM_ADDRESS,
-    abi: loanExecuteJsonAbi as Abi,
+    ...loanExecutorContract,
+    account,
     functionName: "executeLoan",
-    args: [invoiceId, target, amount, deadline, signature],
+    args: [invoiceId],
+    value,
   });
 }
 
-export async function autoExecuteLoan(
-  invoiceId: bigint,
-  target: `0x${string}`,
-  amount: bigint,
-  deadline: bigint,
-  signature: `0x${string}`
-) {
+export async function withdraw() {
+  const walletClient = await getWalletClient();
+  const account = getAccount(config).address!;
   return walletClient.writeContract({
-    address: INVOICE_PLATFORM_ADDRESS,
-    abi: loanExecuteJsonAbi as Abi,
-    functionName: "autoExecuteLoan",
-    args: [invoiceId, target, amount, deadline, signature],
+    ...loanExecutorContract,
+    account,
+    functionName: "withdraw",
+    args: [],
   });
 }
+
+// === RECEIVE ===
+// receive()는 외부에서 그냥 송금하는 기능이므로 특별한 호출 함수는 필요 없음.
+// 예: 직접 송금하고 싶다면 지갑에서 address로 전송하면 됨.

@@ -1,19 +1,14 @@
-import { Abi, createPublicClient, createWalletClient, custom, http } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { Abi, createPublicClient, http } from "viem";
+import { getWalletClient as wagmiGetWalletClient, getAccount } from "@wagmi/core";
+import { config } from "@/wagmi-config";
 import { hashkeyChainTestnet } from "./chains";
 import repaymentAbi from "./abi/repaymentabi.json" assert { type: "json" };
 
-const REPAYMENT_CONTRACT_ADDRESS: `0x${string}` = "0x0000000000000000000000000000000000000000";
+const REPAYMENT_CONTRACT_ADDRESS: `0x${string}` = "0x90B7E8dA0D99b6cDb0b9Cb0529A547a9eC03e949"; // 실제 주소 입력
 
 export const publicClient = createPublicClient({
   chain: hashkeyChainTestnet,
   transport: http(),
-});
-
-export const walletClient = createWalletClient({
-  account: privateKeyToAccount("0xYOUR_PRIVATE_KEY"),
-  chain: hashkeyChainTestnet,
-  transport: custom(window.ethereum),
 });
 
 export const repaymentContract = {
@@ -21,71 +16,94 @@ export const repaymentContract = {
   abi: repaymentAbi as Abi,
 };
 
-// === VIEW FUNCTIONS ===
-export async function getAdmin() {
-  return publicClient.readContract({
-    address: REPAYMENT_CONTRACT_ADDRESS,
-    abi: repaymentAbi as Abi,
-    functionName: "admin",
-  });
+async function getWalletClient() {
+  const client = await wagmiGetWalletClient(config);
+  if (!client) throw new Error("Wallet not connected");
+  return client;
 }
 
-export async function getInterestRate() {
+// === READ FUNCTIONS ===
+
+export async function getInterestRate(): Promise<bigint> {
   return publicClient.readContract({
-    address: REPAYMENT_CONTRACT_ADDRESS,
-    abi: repaymentAbi as Abi,
-    functionName: "INTEREST_RATE_BPS",
-  });
+    ...repaymentContract,
+    functionName: "INTEREST_RATE",
+  }) as Promise<bigint>;
 }
 
-export async function getFeeRate() {
+export async function getTaxRate(): Promise<bigint> {
   return publicClient.readContract({
-    address: REPAYMENT_CONTRACT_ADDRESS,
-    abi: repaymentAbi as Abi,
-    functionName: "FEE_RATE_BPS",
-  });
+    ...repaymentContract,
+    functionName: "TAX_RATE",
+  }) as Promise<bigint>;
 }
 
-export async function getInvoiceNFTAddress() {
+export async function getTotalRepayment(loanId: bigint): Promise<{
+  total: bigint;
+  interest: bigint;
+  tax: bigint;
+}> {
   return publicClient.readContract({
-    address: REPAYMENT_CONTRACT_ADDRESS,
-    abi: repaymentAbi as Abi,
-    functionName: "invoiceNFT",
-  });
+    ...repaymentContract,
+    functionName: "getTotalRepayment",
+    args: [loanId],
+  }) as Promise<{
+    total: bigint;
+    interest: bigint;
+    tax: bigint;
+  }>;
 }
 
-export async function getLotteryAddress() {
+export async function getLoan(loanId: bigint): Promise<{
+  borrower: `0x${string}`;
+  principal: bigint;
+  startTime: bigint;
+  repaid: boolean;
+}> {
   return publicClient.readContract({
-    address: REPAYMENT_CONTRACT_ADDRESS,
-    abi: repaymentAbi as Abi,
-    functionName: "lottery",
-  });
+    ...repaymentContract,
+    functionName: "loans",
+    args: [loanId],
+  }) as Promise<{
+    borrower: `0x${string}`;
+    principal: bigint;
+    startTime: bigint;
+    repaid: boolean;
+  }>;
 }
 
-export async function getVaultContractAddress() {
+export async function getNextLoanId(): Promise<bigint> {
   return publicClient.readContract({
-    address: REPAYMENT_CONTRACT_ADDRESS,
-    abi: repaymentAbi as Abi,
-    functionName: "vaultContract",
-  });
+    ...repaymentContract,
+    functionName: "nextLoanId",
+  }) as Promise<bigint>;
 }
 
 // === WRITE FUNCTIONS ===
-export async function repay(invoiceId: bigint, totalAmount: bigint) {
+
+export async function registerLoan(
+  borrower: `0x${string}`,
+  principal: bigint,
+  executors: `0x${string}`[]
+) {
+  const walletClient = await getWalletClient();
+  const account = getAccount(config).address!;
   return walletClient.writeContract({
-    address: REPAYMENT_CONTRACT_ADDRESS,
-    abi: repaymentAbi as Abi,
-    functionName: "repay",
-    args: [invoiceId],
-    value: totalAmount,
+    ...repaymentContract,
+    account,
+    functionName: "registerLoan",
+    args: [borrower, principal, executors],
   });
 }
 
-export async function updateAdmin(newAdmin: `0x${string}`) {
+export async function repayLoan(loanId: bigint, value: bigint) {
+  const walletClient = await getWalletClient();
+  const account = getAccount(config).address!;
   return walletClient.writeContract({
-    address: REPAYMENT_CONTRACT_ADDRESS,
-    abi: repaymentAbi as Abi,
-    functionName: "updateAdmin",
-    args: [newAdmin],
+    ...repaymentContract,
+    account,
+    functionName: "repay",
+    args: [loanId],
+    value,
   });
 }
