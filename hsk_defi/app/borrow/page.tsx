@@ -14,7 +14,7 @@ import { FileText, BarChart3, Upload, Clock, CheckCircle, AlertCircle, ExternalL
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { getInvoiceDetails } from "@/lib/invoice"
+import { getInvoiceDetails, mintInvoice } from "@/lib/invoice"
 
 function convertStatus(status: number): string {
   switch (status) {
@@ -39,11 +39,19 @@ export default function BorrowPage() {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [file, setFile] = useState<File | null>(null)
   const router = useRouter()
+  const [s3Uri, setS3Uri] = useState<string | null>(null)
+  const [form, setForm] = useState({
+    client: "",
+    amount: "",
+    issueDate: "",
+    dueDate: "",
+    description: "",
+  })
 
   useEffect(() => {
     const checkStatus = async () => {
       if (!isConnected || !address) return
-  
+
       try {
         const res = await fetch("/api/wallet-status", {
           method: "POST",
@@ -53,7 +61,7 @@ export default function BorrowPage() {
         })
         const data = await res.json()
         setStatus(data.status || "error")
-  
+
         // ✅ Replace mock data with contract data
         const rawInvoices = await getInvoiceDetails()
         const formattedInvoices = rawInvoices.map((inv: any, i: number) => ({
@@ -69,31 +77,54 @@ export default function BorrowPage() {
           loanDate: inv.loanDate ? new Date(Number(inv.loanDate) * 1000).toISOString().slice(0, 10) : null,
           nft: inv.nftMinted
             ? {
-                tokenId: inv.tokenId?.toString(),
-                contractAddress: inv.contractAddress,
-                blockchain: "HashKey Chain",
-                imageUrl: "/placeholder.svg?height=300&width=300",
-                mintedDate: new Date(Number(inv.mintedDate) * 1000).toISOString().slice(0, 10),
-              }
+              tokenId: inv.tokenId?.toString(),
+              contractAddress: inv.contractAddress,
+              blockchain: "HashKey Chain",
+              imageUrl: "/placeholder.svg?height=300&width=300",
+              mintedDate: new Date(Number(inv.mintedDate) * 1000).toISOString().slice(0, 10),
+            }
             : null,
         }))
-  
+
         setInvoices(formattedInvoices)
       } catch (err) {
         console.error("상태 확인 실패", err)
         setStatus("error")
       }
     }
-  
+
     checkStatus()
   }, [isConnected, address])
-  
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0])
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      const selectedFile = e.target.files[0]
+      setFile(selectedFile)
+
+      const formData = new FormData()
+      formData.append("img", selectedFile)
+
+      try {
+        const res = await fetch("/api/borrow", {
+          method: "POST",
+          body: formData,
+        })
+        const result = await res.json()
+
+        if (result.message === "OK" && result.url) {
+          setS3Uri(result.url)
+          alert("파일이 업로드되었습니다.")
+        } else {
+          alert("업로드 실패: " + result.message)
+        }
+      } catch (err) {
+        console.error("파일 업로드 에러", err)
+        alert("업로드 중 오류 발생")
+      }
     }
   }
+
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard
@@ -106,6 +137,27 @@ export default function BorrowPage() {
         console.error("Failed to copy: ", err)
       })
   }
+
+  const handleInvoiceSubmit = async () => {
+    if (!s3Uri || !form.amount || !form.dueDate || !address) {
+      alert("모든 필수 정보를 입력하세요.")
+      return
+    }
+  
+    try {
+      const amountBigInt = BigInt(Number(form.amount) * 1e18)
+      const dueDateTimestamp = BigInt(new Date(form.dueDate).getTime() / 1000)
+  
+      await mintInvoice(address as `0x${string}`, amountBigInt, dueDateTimestamp, s3Uri)
+  
+      alert("인보이스 NFT가 발행되었습니다.")
+      setActiveTab("dashboard")
+    } catch (err) {
+      console.error("mintInvoice 실패", err)
+      alert("인보이스 등록 실패")
+    }
+  }
+  
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -155,7 +207,7 @@ export default function BorrowPage() {
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold mb-6">인보이스 담보 대출</h1>
 
-      <Tabs defaultValue="dashboard" className="w-full" onValueChange={setActiveTab}>
+      <Tabs value={activeTab} className="w-full" onValueChange={setActiveTab}>
         <TabsList className="mb-8">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
@@ -430,7 +482,9 @@ export default function BorrowPage() {
                     </label>
                     <input
                       id="client"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      value={form.client}
+                      onChange={(e) => setForm({ ...form, client: e.target.value })}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                       placeholder="고객사 이름"
                     />
                   </div>
@@ -441,7 +495,9 @@ export default function BorrowPage() {
                     <input
                       id="amount"
                       type="number"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      value={form.amount}
+                      onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                       placeholder="0"
                     />
                   </div>
@@ -455,7 +511,7 @@ export default function BorrowPage() {
                     <input
                       id="issueDate"
                       type="date"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     />
                   </div>
                   <div className="space-y-2">
@@ -465,11 +521,23 @@ export default function BorrowPage() {
                     <input
                       id="dueDate"
                       type="date"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      value={form.dueDate}
+                      onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     />
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <label htmlFor="description" className="text-sm font-medium">
+                    추가 정보
+                  </label>
+                  <textarea
+                    id="description"
+                    className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    placeholder="인보이스에 대한 추가 정보를 입력하세요"
+                  />
+                </div>
                 <div className="space-y-2">
                   <label htmlFor="invoiceFile" className="text-sm font-medium">
                     인보이스 파일 업로드
@@ -506,18 +574,6 @@ export default function BorrowPage() {
                     </label>
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="description" className="text-sm font-medium">
-                    추가 정보
-                  </label>
-                  <textarea
-                    id="description"
-                    className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    placeholder="인보이스에 대한 추가 정보를 입력하세요"
-                  />
-                </div>
-
                 <div className="bg-muted/30 p-4 rounded-lg border border-muted">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
@@ -537,7 +593,7 @@ export default function BorrowPage() {
                   <Button variant="outline" className="mr-2">
                     취소
                   </Button>
-                  <Button>인보이스 등록</Button>
+                  <Button onClick={handleInvoiceSubmit}>인보이스 등록</Button>
                 </div>
               </div>
             </CardContent>
