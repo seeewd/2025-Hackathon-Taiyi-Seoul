@@ -110,9 +110,9 @@ export default function Home() {
               <div className="rounded-full bg-primary/10 p-3">
                 <Shield className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-bold">ERC4626 KYC 인증</h3>
+              <h3 className="text-xl font-bold">KYC 인증</h3>
               <p className="text-center text-muted-foreground">
-                ERC4626 표준을 활용한 안전하고 효율적인 KYC 인증 시스템 구축
+                안전하고 효율적인 KYC 인증 시스템 구축
               </p>
             </div>
             <div className="flex flex-col items-center space-y-4 rounded-lg border p-6">
