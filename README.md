@@ -23,9 +23,6 @@ Jowiseong: Smart Contract Developer
 
 Kim Donghyun: Frontend Developer
 
-Example
-# AI Writing Assistant
-
 
 Project Code
 Submit code for review and testing. You need to include at least one open source license from the following:
