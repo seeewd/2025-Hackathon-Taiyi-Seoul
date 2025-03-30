@@ -15,7 +15,7 @@ NFT & DeFi: ERC-721, Hardhat, Wagmi
 Storage: Amazon S3, Couchbase
 
 ## Demo
-- Demo Video: [YouTube link]
+- Demo Video: [YouTube link](https://youtu.be/vK2FAhMu3yo)
 - Project Deck: [[Google Slides link]](https://docs.google.com/presentation/d/1gZPlVuZxTLjqCtdCUjVYBLQqFECKryjI_RI_c2GnNJg/edit?usp=sharing)
 
 ## Team
