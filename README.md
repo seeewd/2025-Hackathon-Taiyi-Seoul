@@ -17,25 +17,9 @@ Demo Video: [YouTube link]
 Project Deck: [Google Slides link]
 
 Team
-Chowiseong: Smart Contract Developer
 
-Kim Donghyun: Frontend Developer
+Chowiseong: Smart Contract Developer, 0x0c5fde19219d81a826C9E01bE4f0C00fe333cC8e
 
-Submission Requirements
-The submission deadline is 10:00 AM on the 22nd, and the following requirements must be met:
+Kim Donghyun: Frontend Developer, 0xD06F669B991742808e81db1c5241080EFeA6f095
 
-Project Code: Submit the code for review and testing.
 
-Open Source License: Include at least one of the following licenses:
-
-MIT: https://opensource.org/licenses/MIT
-
-Apache 2.0: https://opensource.org/licenses/Apache-2.0
-
-3-Clause BSD: https://opensource.org/licenses/BSD-3-Clause
-
-Project Deck: A brief description of the project and team introduction.
-
-Live Demo & Video (Optional)
-
-Important: All projects must be developed during the hackathon. Projects developed prior to the event are not eligible for submission.
