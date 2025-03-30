@@ -1,25 +1,62 @@
-Invoice-Backed Loan NFT System
-Overview
-This project aims to revolutionize the lending process by converting invoices into NFTs, transforming real-world assets (RWAs) into digital assets. Users (borrowers) can upload invoices, which are then minted as NFTs. These NFTs represent the borrower’s asset and serve as collateral for loans. The system automates the entire loan process, including asset deposit, loan approval, execution, and repayment, using smart contracts. The entire process is powered by decentralized finance (DeFi) protocols, bringing transparency and efficiency to traditional lending.
+HackerHouse Projects Showcase
+Welcome to the HackerHouse Projects Showcase! This repository features all the amazing projects built during Hackathon.
 
-Tech Stack
-Frontend: React, Next.js, TailwindCSS
+How to Submit Your Project
+Fork this repository
+Create your project folder under projects (e.g., /projects/your-project-name)
+Add your project documentation (using the template below)
+Submit a Pull Request
+Wait for on-site review
+Important: All projects must be developed on-site during the Hackathon. Previously developed projects are not eligible for submission.
 
-Backend: Node.js, Express
+Project Documentation Template
+Create a README.md in your project folder using this template:
 
-Smart Contracts: Solidity, Ethereum
+# Project Name
 
-Deployment: AWS, Docker
+## Overview
+[Describe your project in 2-3 sentences - what it does and what problem it solves]
 
-Demo
-Demo Video: [YouTube link]
+## Tech Stack
+- Frontend: [List frontend technologies]
+- Backend: [List backend technologies]
+- Other: [Any other relevant technologies]
 
-Project Deck: [Google Slides link]
+## Demo
+- Demo Video: [YouTube link]
+- Project Deck: [Google Slides link]
 
-Team
+## Team
+- Member A - Role
+- Member B - Role
+- Member C - Role
+Example
+# AI Writing Assistant
 
-Chowiseong: Smart Contract Developer, 0x0c5fde19219d81a826C9E01bE4f0C00fe333cC8e
+## Overview
+An intelligent writing assistant powered by GPT-4, helping users generate high-quality content quickly. Supports multiple writing styles and adapts content based on user feedback.
 
-Kim Donghyun: Frontend Developer, 0xD06F669B991742808e81db1c5241080EFeA6f095
+## Tech Stack
+- Frontend: React, TailwindCSS
+- Backend: Node.js, Express
+- AI: OpenAI API, Langchain
+- Deployment: Docker, AWS
 
+## Demo
+- Demo Video: https://youtube.com/watch?v=...
+- Project Deck: https://docs.google.com/presentation/d/...
 
+## Team
+- John Doe - Full Stack Developer
+- Jane Smith - AI Engineer
+- Mike Johnson - Product Designer
+Submission Requirements
+The submission deadline is 10:00 on the 22th, with the following submission requirements:
+Project Code
+Submit code for review and testing. You need to include at least one open source license from the following:
+MIT - https://opensource.org/licenses/MIT
+Apache 2.0 - https://opensource.org/licenses/Apache-2.0
+3-Clause BSD - https://opensource.org/licenses/BSD-3-Clause Detailed submission rules will be announced later. We suggest developers focus on creativity and MVP implementation during the Hackerhouse. Time is precious, and you can consider project and code completeness and detailed architecture design later.
+Deck
+Brief project description, team introduction, etc.
+Live Demo & Video (Optional)
