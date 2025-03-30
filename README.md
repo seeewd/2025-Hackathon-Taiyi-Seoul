@@ -1,57 +1,32 @@
-HackerHouse Projects Showcase
-Welcome to the HackerHouse Projects Showcase! This repository features all the amazing projects built during Hackathon.
-
-How to Submit Your Project
-Fork this repository
-Create your project folder under projects (e.g., /projects/your-project-name)
-Add your project documentation (using the template below)
-Submit a Pull Request
-Wait for on-site review
-Important: All projects must be developed on-site during the Hackathon. Previously developed projects are not eligible for submission.
-
-Project Documentation Template
-Create a README.md in your project folder using this template:
-
-# Project Name
+# Invoice Pay
 
 ## Overview
-[Describe your project in 2-3 sentences - what it does and what problem it solves]
+This project revolutionizes the lending process by transforming invoices into NFTs, turning real-world assets (RWAs) into digital assets. Borrowers can upload their invoices, which are then minted as NFTs representing their assets, and these NFTs serve as collateral for loans. The system automates the loan process—covering asset deposit, approval, execution, and repayment—through smart contracts, powered by decentralized finance (DeFi) protocols, ensuring transparency and efficiency in traditional lending.
 
 ## Tech Stack
-- Frontend: [List frontend technologies]
-- Backend: [List backend technologies]
-- Other: [Any other relevant technologies]
+Frontend: React, Next.js, TailwindCSS
+
+Backend: Node.js, Axios
+
+Blockchain: Solidity, OpenZeppelin
+
+NFT & DeFi: ERC-721, Hardhat, Wagmi
+
+Storage: Amazon S3, Couchbase
 
 ## Demo
 - Demo Video: [YouTube link]
 - Project Deck: [Google Slides link]
 
 ## Team
-- Member A - Role
-- Member B - Role
-- Member C - Role
+Jowiseong: Smart Contract Developer
+
+Kim Donghyun: Frontend Developer
+
 Example
 # AI Writing Assistant
 
-## Overview
-An intelligent writing assistant powered by GPT-4, helping users generate high-quality content quickly. Supports multiple writing styles and adapts content based on user feedback.
 
-## Tech Stack
-- Frontend: React, TailwindCSS
-- Backend: Node.js, Express
-- AI: OpenAI API, Langchain
-- Deployment: Docker, AWS
-
-## Demo
-- Demo Video: https://youtube.com/watch?v=...
-- Project Deck: https://docs.google.com/presentation/d/...
-
-## Team
-- John Doe - Full Stack Developer
-- Jane Smith - AI Engineer
-- Mike Johnson - Product Designer
-Submission Requirements
-The submission deadline is 10:00 on the 22th, with the following submission requirements:
 Project Code
 Submit code for review and testing. You need to include at least one open source license from the following:
 MIT - https://opensource.org/licenses/MIT
