@@ -16,7 +16,7 @@ Storage: Amazon S3, Couchbase
 
 ## Demo
 - Demo Video: [YouTube link]
-- Project Deck: [Google Slides link]
+- Project Deck: [[Google Slides link]](https://docs.google.com/presentation/d/1gZPlVuZxTLjqCtdCUjVYBLQqFECKryjI_RI_c2GnNJg/edit?usp=sharing)
 
 ## Team
 Jowiseong: Smart Contract Developer
